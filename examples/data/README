@@ -1,0 +1,12 @@
+This directory should contain example data files for the roppy
+examples to work. Due to their size, they are kept outside the
+version control.
+
+The data files can be downloaded from 
+http://code.google.com/p/roppy/downloads
+
+The files should be gunzipped and moved into this directory 
+(examples/data).
+
+Data files:
+ocean_avg_example.nc   94 577 488 bytes (uncompressed)
