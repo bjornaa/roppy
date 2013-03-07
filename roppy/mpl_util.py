@@ -12,6 +12,9 @@ Function overview
 :func:`LevelColormap`
   Make a colormap for a sequence of levels
 
+:func:`levelmap`
+  Make a colormap for a sequence of levels
+
 """
 
 # -----------------------------------
@@ -120,4 +123,65 @@ def LevelColormap(levels, cmap=None, reverse=False):
     return plt.matplotlib.colors.LinearSegmentedColormap(
         '%s_levels' % cmap.name, cdict, 256)
 
+# -------------------
 
+def levelmap(L, cmap=None, reverse=False, extend='neither'):
+    """Make colormap and normalization from a sequence of levels
+
+    *L* : increasing sequence of levels
+
+    *cmap* : colormap, default = current colormap
+
+    *reverse* : False|True, whether to reverse the colormap
+
+    *extend* : "neither"|"min"|"max"|"both"
+               handling of too small or large values
+
+    return value : (new color map, new normalization)
+    
+    """
+
+    N = len(L)
+
+    # Normalize using the levels
+    new_norm = mpl.colors.BoundaryNorm(L, N-1)
+
+    # Start with an existing colormap
+    if not cmap:
+        cmap = plt.get_cmap()
+
+    # Handle the extend
+    if extend == "both":
+        ncol = N+1
+        c_over = True
+        c_under = True
+        I = slice(1, -1)  
+    elif extend == "min":
+        ncol = N
+        c_over = False
+        c_under = True
+        I = slice(1, None)
+    elif extend == "max":
+        ncol = N
+        c_over = True
+        c_under = False
+        I = slice(None, -1)
+    else: # extend = neither
+        ncol = N-1
+        c_over = False
+        c_under = False
+        I = slice(None)
+
+    # Spread the colours maximally
+    C = cmap(np.linspace(0.0, 1.0, ncol))
+    if reverse:
+        C = C[::-1]
+        
+    # Make the colormap, including under/over values
+    new_map = mpl.colors.ListedColormap(C[I])
+    if c_over:
+        new_map.set_over(C[-1])
+    if c_under:
+        new_map.set_under(C[0])
+
+    return new_map, new_norm
