@@ -1,4 +1,16 @@
+# Emacs backup
 *~
+
+# Python compile and build
 *.pyc
 build/*
+
+# Documentation, compile and build
+doc/_build
+
+# NetCDF data files
 *.nc
+
+
+
+
