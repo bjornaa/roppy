@@ -10,3 +10,7 @@ The files should be gunzipped and moved into this directory
 
 Data files:
 ocean_avg_example.nc   94 577 488 bytes (uncompressed)
+
+Download:
+wget http://roppy.googlecode.com/files/ocean_avg_example.nc.gz
+gunzip /ocean_avg_example.nc.gz
