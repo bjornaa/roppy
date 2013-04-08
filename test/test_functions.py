@@ -5,9 +5,10 @@ import numpy as np
 
 import sys
 sys.path = [".."] + sys.path
+print sys.path
 from roppy.functions import *
 
-# ------------------------------------
+# =========================================================
 
 class test_kinetic_energy(unittest.TestCase):
 
@@ -58,56 +59,35 @@ class test_kinetic_energy(unittest.TestCase):
         V = np.array([vel(a, -a), vel(-a, a)]).reshape((2,1))
         KE = kinetic_energy(U,V)
         self.assertAlmostEqual(KE[0,0], 1.0/24.0, places=15)
+
+    # Ikke isotropt
+    def rest_isotropy(self):
+        def vel(x, y, theta):
+            a = (x*np.cos(theta) + y*np.sin(theta))
+            return (a*np.cos(theta), a*np.sin(theta))
+        theta = 0.1
+        U = np.array([[vel(-0.5, 0.0, theta)[0],
+                       vel( 0.5, 0.0, theta)[0]]])
+        V = np.array([[vel(0.0, -0.5, theta)[1],
+                       vel(0.0,  0.5, theta)[1]]]).T
+        KE = kinetic_energy(U, V)
+        print "KE = ", KE
+        theta = 0.2
+        U = np.array([[vel(-0.5, 0.0, theta)[0],
+                       vel( 0.5, 0.0, theta)[0]]])
+        V = np.array([[vel(0.0, -0.5, theta)[1],
+                       vel(0.0,  0.5, theta)[1]]]).T
+        KE = kinetic_energy(U, V)
+        #print "KE = ", KE
+
         
+                 
+        
+
+
+# ==========================================================        
+
 class test_divergence(unittest.TestCase):
-
-    def test_correct_shape(self):
-        imax, jmax = 8, 5
-        U = np.zeros((jmax, imax+1), dtype='f')
-        V = np.zeros((jmax+1, imax), dtype='f')
-        pm = np.ones((jmax, imax))
-        D = divergence(U, V, pm, pm)
-        self.assertTrue(D.shape == (jmax, imax))
-
-    def test_constant_input(self):
-        """The divergence of a constant field is zero"""
-        
-        imax, jmax = 4, 3
-        U0 = 1.0
-        V0 = 0.2
-        U = np.zeros((jmax, imax+1), dtype='f') + U0
-        V = np.zeros((jmax+1, imax), dtype='f') + V0
-        pm = np.ones((jmax, imax))
-        D = divergence(U, V, pm, pm)
-        self.assertEqual(D[2,2], 0.0)
-
-    def test_rotation(self):
-        """The divergence is zero in solid body rotation"""
-
-        # U(x,y) = -y, V(x, y) = x
-        #     x0 <= x <= x0+1
-        #     y0 <= y <= y0+1
-        def Uvel(x, y):
-            return -y,
-        def Vvel(x, y):
-            return x
-        x0 = 4.0
-        y0 = 2.0
-        U = np.array([Uvel(x0, y0+0.5), Uvel(x0+1, y0+0.5)]).reshape((1,2))
-        V = np.array([Vvel(x0+0.5, y0), Vvel(x0+0.5, y0+1)]).reshape((2,1))
-        pm = np.array([[1.0]])
-        D = divergence(U, V, pm, 2*pm)
-        self.assertEqual(D[0,0], 0.0)
-
-    def test_corner(self):
-        """Flow around a corner"""
-        U = np.array([ 1.0, 0.0]).reshape((1,2))
-        V = np.array([-1.0, 0.0]).reshape((2,1))
-        pm = np.array([[1.0]])
-        D = divergence(U, V, pm, pm)
-        self.assertEqual(D[0,0], 0.0)
-
-class test_div2(unittest.TestCase):
         
 
     def test_correct_shape(self):
@@ -115,11 +95,11 @@ class test_div2(unittest.TestCase):
         U = np.zeros((jmax, imax+1), dtype='f')
         V = np.zeros((jmax+1, imax), dtype='f')
         pm = np.ones((jmax+2, imax+2))
-        D = div2(U, V, pm, pm)
+        D = divergence(U, V, pm, pm)
         self.assertTrue(D.shape == (jmax, imax))
 
     def test_constant_input(self):
-        """The divergence of a constant field is zero"""
+        """The divergence of constant field in Cartesian grid is zero"""
         
         imax, jmax = 4, 3
         U0 = 1.0
@@ -128,37 +108,86 @@ class test_div2(unittest.TestCase):
         V = np.zeros((jmax+1, imax), dtype='f') + V0
         pm = np.ones((jmax+2, imax+2))
         pn = 2*pm
-        D = div2(U, V, pm, pm)
+        D = divergence(U, V, pm, pm)
         self.assertEqual(D[2,2], 0.0)
 
-    def test_rotation(self):
-        """The divergence is zero in solid body rotation"""
+    def test_rotation_1(self):
+        """Solid body rotation in cartesian grid"""
+        # pn = 1/dx, pm = 1/dy
+        # U(x,y) = -y*dy, V(x, y) = x*dx
+        # div = 0
 
-        # U(x,y) = -y, V(x, y) = x
-        #     x0 <= x <= x0+1
-        #     y0 <= y <= y0+1
-        def Uvel(x, y):
-            return -y,
-        def Vvel(x, y):
-            return x
-        x0 = 4.0
-        y0 = 2.0
-        U = np.array([Uvel(x0, y0+0.5), Uvel(x0+1, y0+0.5)]).reshape((1,2))
-        V = np.array([Vvel(x0+0.5, y0), Vvel(x0+0.5, y0+1)]).reshape((2,1))
-        pm = np.array(9*[1.0]).reshape((3,3))
-        pn = 2*pm
-        D = div2(U, V, pm, pn)
+        x, y = 4.0, 2.0
+        dx, dy = 0.5, 0.5
+        U = np.array([-(y-0.5)*dy, -(y+0.5)*dy]).reshape((1,2))
+        V = np.array([ (x-0.5)*dx,  (x+0.5)*dx]).reshape((2,1))
+        pm = (1/dx) + np.zeros((3,3))
+        pn = (1/dy) + np.zeros((3,3))
+        D = divergence(U, V, pm, pn)
+        self.assertEqual(D[0,0], 0.0)
+        
+    def test_rotation_2(self):
+        """Solid body rotation in polar grid"""
+        # Polar coordinates (x*dx = radius, y*dy = angle)
+        #   pm = 1/dx, pn = 1/(x*dx*dy)
+        #   U = 0, V = x * dx
+        #   div = 0
+
+        x, y = 4.0, 2.0
+        dx, dy = 0.3, 0.03
+        U = np.zeros((1,2), dtype=np.float64)
+        V = np.array([x*dx, x*dx]).reshape((2,1))
+        pm = (1.0/dx) + np.zeros((3,3), dtype=np.float64)
+        pn = (1/(dx*dy)) * np.array([1.0/(x-1), 1.0/x, 1.0/(x+1)])
+        pn = np.add.outer([0,0,0], pn)
+        D = divergence(U, V, pm, pn)
         self.assertEqual(D[0,0], 0.0)
 
-    def test_corner(self):
-        """Flow around a corner"""
-        U = np.array([ 1.0, 0.0]).reshape((1,2))
-        V = np.array([-1.0, 0.0]).reshape((2,1))
-        pm = np.array(9*[1.0]).reshape((3,3))
+    def test_radial_1(self):
+        """Radial flow in Cartesian grid"""
+        # U = x*dx, V = y*dy
+        # pn = 1/dx, pm = 1/dy
+        # div = 2
+        x, y = 4, 2
+        dx = 0.4
+        dy = 0.5
+        U = np.array([(x-0.5)*dx, (x+0.5)*dx]).reshape((1,2))
+        V = np.array([(y-0.5)*dy, (y+0.5)*dy]).reshape((2,1))
+        pm = (1/dx) + np.zeros((3,3))
+        pn = (1/dy) + np.zeros((3,3))
+        D = divergence(U, V, pm, pn)
+        #print "D = ", D, dx+dy
+        self.assertAlmostEqual(D[0,0], 2.0, places=15)
+        
+    def test_radial_2(self):
+        """Radial flow"""
+        # Polar coordinates (x*dx = radius, y*dy = angle)
+        #   pm = 1/dx, pn = 1/(x*dx*dy)
+        #   U = x*dx, V = 0
+        #   div = pm*pn*(d/dx(U/pn) + d/dy(V/pm)) = 2
+        x, y = 4.0, 2.0
+        dx, dy = 0.3, 0.03
+        U = np.array([(x-0.5)*dx, (x+0.5)*dx]).reshape((1,2))
+        V = np.zeros((2,1), dtype=np.float64)
+        pm = (1.0/dx) + np.zeros((3,3), dtype=np.float64)
+        pn = (1/(dx*dy)) * np.array([1.0/(x-1), 1.0/x, 1.0/(x+1)])
+        pn = np.add.outer([0,0,0], pn)
+        D = divergence(U, V, pm, pn)
+        self.assertAlmostEqual(D[0,0], 2.0, places=12)
+       
+    def test_vortex(self):
+        """Flow around a psi-point, cartesian"""
+        U = np.array([[ 0.0, 1.0, 0.0], [0.0, -1.0, 0.0]])
+        V = -U.T
+        pm = np.ones((4,4))
         pn = pm
-        D = div2(U, V, pm, pn)
+        D = divergence(U, V, pm, pn)
         self.assertEqual(D[0,0], 0.0)
-        
+        self.assertEqual(D[0,1], 0.0)
+        self.assertEqual(D[1,0], 0.0)
+        self.assertEqual(D[1,1], 0.0)
+       
+
 
 
 # --------------------------------------
