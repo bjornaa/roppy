@@ -5,7 +5,7 @@ import numpy as np
 
 import sys
 sys.path = [".."] + sys.path
-print sys.path
+#print sys.path
 from roppy.functions import *
 
 # =========================================================
@@ -186,8 +186,108 @@ class test_divergence(unittest.TestCase):
         self.assertEqual(D[0,1], 0.0)
         self.assertEqual(D[1,0], 0.0)
         self.assertEqual(D[1,1], 0.0)
-       
 
+# --------------------------------------       
+
+class test_curl(unittest.TestCase):
+        
+    def test_correct_shape(self):
+        imax, jmax = 8, 5
+        U = np.zeros((jmax, imax-1), dtype='f')
+        V = np.zeros((jmax-1, imax), dtype='f')
+        pm = np.ones((jmax, imax))
+        C = curl(U, V, pm, pm)
+        self.assertTrue(C.shape == (jmax-1, imax-1))
+
+    def test_constant_input(self):
+        """The curl of constant field in Cartesian grid is zero"""
+        
+        imax, jmax = 4, 3
+        U0 = 1.0
+        V0 = 0.2
+        U = np.zeros((jmax, imax-1), dtype='f') + U0
+        V = np.zeros((jmax-1, imax), dtype='f') + V0
+        pm = np.ones((jmax, imax))
+        pn = 2*pm
+        C = curl(U, V, pm, pm)
+        self.assertEqual(C[1,1], 0.0)
+
+    def test_rotation_1(self):
+        """Solid body rotation in cartesian grid"""
+        # pn = 1/dx, pm = 1/dy
+        # U(x,y) = -y*dy, V(x, y) = x*dx
+        # curl = -2
+
+        imax, jmax = 2, 2
+        x, y = 4.0, 2.0    # Grid coordinates in lower left grid cell
+        dx, dy = 0.2, 0.3  # Grid spacing
+        U = np.array([-y*dy, -(y+1)*dy]).reshape((2,1))
+        V = np.array([ x*dx,  (x+1)*dx]).reshape((1,2))
+        pm = (1/dx) + np.zeros((jmax, imax))
+        pn = (1/dy) + np.zeros((jmax, imax))
+        C = curl(U, V, pm, pn)
+        self.assertEqual(C[0,0], -2.0)
+        
+    def test_rotation_2(self):
+        """Solid body rotation in polar grid"""
+        # Polar coordinates (x*dx = radius, y*dy = angle)
+        #   pm = 1/dx, pn = 1/(x*dx*dy)
+        #   U = 0, V = x * dx
+        #   curl = -2
+        # Errors when curving a lot
+
+        imax, jmax = 2, 2
+        x, y = 1014.0, 620.0
+        dx, dy = 0.001, 0.001     # 1 km resolution
+        U = np.zeros((2,1), dtype=np.float64)
+        V = np.array([x*dx, (x+1)*dx]).reshape((1,2))
+        pm = (1.0/dx) + np.zeros((2,2), dtype=np.float64)
+        pn = (1/(dx*dy)) * np.array([[1.0/x, 1.0/(x+1)], [1.0/x, 1.0/(x+1)]])
+        C = curl(U, V, pm, pn)
+        self.assertAlmostEqual(C[0,0], -2.0, places=6)
+
+    def test_radial_1(self):
+        """Radial flow in Cartesian grid"""
+        # U = x*dx, V = y*dy
+        # pn = 1/dx, pm = 1/dy
+        # curl = 0
+        imax, jmax = 2, 2
+        x, y = 4, 2
+        dx = 0.4
+        dy = 0.5
+        U = np.array([x*dx, x*dx]).reshape((2,1))
+        V = np.array([y*dy, y*dy]).reshape((1,2))
+        pm = (1/dx) + np.zeros((jmax, imax))
+        pn = (1/dy) + np.zeros((jmax, imax))
+        C = curl(U, V, pm, pn)
+        self.assertEqual(C[0,0], 0.0)
+        
+    def test_radial_2(self):
+        """Radial flow"""
+        # Polar coordinates (x*dx = radius, y*dy = angle)
+        #   pm = 1/dx, pn = 1/(x*dx*dy)
+        #   U = x*dx, V = 0
+        #   curl = 0+
+        imax, jmax = 2, 2
+        x, y = 4.0, 2.0
+        dx, dy = 0.3, 0.03
+        U = np.array([x*dx, x*dx]).reshape((2,1))
+        V = np.zeros((1,2), dtype=np.float64)
+        pm = (1.0/dx) + np.zeros((jmax, imax), dtype=np.float64)
+        pn = (1/(dx*dy)) * np.array([[1.0/x, 1.0/(x+1)], [1.0/x, 1.0/(x+1)]])
+        C = curl(U, V, pm, pn)
+        print C.shape
+        self.assertEqual(C[0,0], 0.0)
+       
+    def test_vortex(self):
+        """Flow around a psi-point, cartesian"""
+        imax, jmax = 2, 2
+        U = np.array([1.0, -1.0]).reshape((2,1))
+        V = np.array([-1.0, 1.0]).reshape((1,2))
+        pm = np.ones((jmax, imax))
+        pn = pm
+        C = curl(U, V, pm, pn)
+        self.assertEqual(C[0,0], -4.0)
 
 
 # --------------------------------------
