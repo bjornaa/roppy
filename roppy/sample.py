@@ -36,7 +36,7 @@ def sample2D2(F, X, Y):
     Note reversed axes, for integers i and j we have
       ``sample2D(F, i, j) = F[j,i]``
 
-    Using linear interpolation
+    Using bilinear interpolation
     
     """
 
@@ -126,7 +126,7 @@ def sample2D_masked(F, M, X, Y):
 def sample2D(F, X, Y, mask=None, undef_value=0.0, outside_value=None):
     """Bilinear sample of a 2D field
 
-    *F* : 2D array
+    *F* : 2D array, shape = (jmax, imax)
     
     *X*, *Y* : position in grid coordinates, scalars or compatible arrays
 
@@ -206,7 +206,7 @@ def sample2D(F, X, Y, mask=None, undef_value=0.0, outside_value=None):
     S = np.where(SW <= 0, undef_value,
           (W00*F[J,I] + W01*F[J+1,I] + W10*F[J,I+1] + W11*F[J+1,I+1])/SW)
 
-    # Set in outside_values
+    # Set in outside_value
     if outside_value:
         S = np.where(outside, outside_value, S)
 
