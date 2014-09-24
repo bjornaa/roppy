@@ -3,18 +3,23 @@
 import numpy as np
 from sample import sample2D, sample2DU, sample2DV
 from depth import sdepth
-#from romsutil import *
+
+
+
 
 class Section(object):
     """Class for handling sections in a ROMS grid
 
-    The grid is defined by a grid object having attributes
-    
-       h, pm, pn, hc, Cs_r, Cs_w, Vtransform 
+    The section is defined by a sequence of nodes, supposedly quite close
+    The endpoints of the section are nodes
+
+    The grid information is defined by a grid object having attributes
+
+       h, pm, pn, hc, Cs_r, Cs_w, Vtransform
 
     with the ROMS variables of the same netCDF names
 
-    Defined by sequences of grid coordinates of vertices
+    Defined by sequences of grid coordinates of section nodes
 
     """
 
@@ -22,131 +27,104 @@ class Section(object):
 
         self.grid = grid
         # Vertices, in subgrid coordinates
-        self.X = X - grid.i0
-        self.Y = Y - grid.j0
-
-        # Nodes
-        self.Xm = 0.5*(self.X[:-1] + self.X[1:])
-        self.Ym = 0.5*(self.Y[:-1] + self.Y[1:])
+        self.X = X 
+        self.Y = Y 
 
         # Section size
-        self.nseg = len(self.Xm)  # Number of segments = Number of nodes
+        self.L = len(self.X)         # Number of nodes
+        self.__len__ = self.L
         self.N = len(self.grid.Cs_r)
 
-        # Compatible with both SGrid and grdClass
-        try:
-            self.h = sample2D(self.grid.h, self.Xm, self.Ym,
+        # Topography
+        self.h = sample2D(self.grid.h, self.X, self.Y,
                           mask=self.grid.mask_rho, undef_value=0.0)
-        except AttributeError:
-            self.h = sample2D(self.grid.depth, self.Xm, self.Ym)
 
-        pm = sample2D(self.grid.pm, self.Xm, self.Ym)
-        pn = sample2D(self.grid.pn, self.Xm, self.Ym)
-
-        # Unit normal vector (nx, ny)
-        # Sjekk om dette er korrekt hvis pm og pn er ulike
-        dX = (X[1:]-X[:-1]) / pm
-        dY = (Y[1:]-Y[:-1]) / pn
-
-        # Length of segments
-        #   Kan kanskje forbedres med sfærisk avstand
+        # Metric
+        pm = sample2D(self.grid.pm, self.X, self.Y)
+        pn = sample2D(self.grid.pn, self.X, self.Y)
+        dX = 2 * (X[1:]-X[:-1]) / (pm[:-1] + pm[1:])      # unit = meter
+        dY = 2 * (Y[1:]-Y[:-1]) / (pn[:-1] + pn[1:])
+        # Assume spacing is close enough to approximate distance
         self.dS = np.sqrt(dX*dX+dY*dY)
-        # Cumulative distance (at vertices)s
+        # Cumulative distance
         self.S = np.concatenate(([0], np.add.accumulate(self.dS)))
+        # Weights for trapez integration (linear interpolation)
+        self.W = 0.5*np.concatenate(([self.dS[0]],
+                                     self.dS[:-1] + self.dS[1:], [self.dS[-1]]))
 
-        nx, ny  = dY, -dX
-        norm = np.sqrt(nx*nx + ny*ny)
-        self.nx, self.ny = nx/norm, ny/norm    
+        #nx, ny  = dY, -dX
+        #norm = np.sqrt(nx*nx + ny*ny)
+        #self.nx, self.ny = nx/norm, ny/norm
 
         # Vertical structure
         self.z_r = sdepth(self.h, self.grid.hc, self.grid.Cs_r,
                           stagger='rho', Vtransform=self.grid.Vtransform)
         self.z_w = sdepth(self.h, self.grid.hc, self.grid.Cs_w,
                           stagger='w', Vtransform=self.grid.Vtransform)
-        self.dZ = self.z_w[1:,:]-self.z_w[:-1,:]
-        
-        self.Area = self.dZ * self.dS
+        self.dZ = self.z_w[1:, :]-self.z_w[:-1, :]
+
+        self.Area = self.dZ * self.W
 
     def sample2D(self, F):
-        return sample2D(F, self.Xm, self.Ym)
+        """Sample a horizontal field at rho poins with shape (Mp, Lp)"""
+        return sample2D(F, self.X, self.Y, mask=self.grid.mask_rho)
 
     def sample3D(self, F):
         """Sample a 3D field in rho-points with shape (N,Mp,Lp)"""
 
-        # Interpolerer foreløpig langs s-flater
-        # Sikkert OK for plotting, Godt nok for flux-beregning?
+        # Not masked ??
 
-        Fsec = np.zeros((self.grid.N, self.nseg))
-        for k in range(self.grid.N):
-            Fsec[k,:] = sample2D(F[k,:,:], self.Xm, self.Ym,
-                                 mask=self.grid.mask_rho)
-        Fsec = np.ma.masked_where(self.extend_vertically(self.h) == 0, Fsec)
+        Fsec = np.zeros((self.N, self.L))
+        for k in range(self.N):
+            Fsec[k, :] = sample2D(F[k, :, :], self.X, self.Y,
+                                  mask=self.grid.mask_rho)
         return Fsec
 
-    def normal_current(self, U, V):
-        """Sample normal component of velocity field"""
+    ## def normal_current(self, U, V):
+    ##     """Sample normal component of velocity field"""
 
-        # Interpolerer foreløpig langs s-flater
+    ##     # Interpolerer foreløpig langs s-flater
 
-        # Offset for interpolation from U and V grid
-        deltaU = -0.5 + self.grid.i0 - self.grid.i0_u
-        deltaV = -0.5 + self.grid.j0 - self.grid.j0_v
-        Usec = np.zeros((self.N, self.nseg))
-        Vsec = np.zeros((self.N, self.nseg))
-        for k in range(self.N):
-            Usec[k,:] = sample2D(U[k,:,:], self.Xm+deltaU, self.Ym)
-            Vsec[k,:] = sample2D(V[k,:,:], self.Xm, self.Ym+deltaV)
-        return self.nx*Usec + self.ny*Vsec
+    ##     # Offset for interpolation from U and V grid
+    ##     deltaU = -0.5 + self.grid.i0 - self.grid.i0_u
+    ##     deltaV = -0.5 + self.grid.j0 - self.grid.j0_v
+    ##     Usec = np.zeros((self.N, self.nseg))
+    ##     Vsec = np.zeros((self.N, self.nseg))
+    ##     for k in range(self.N):
+    ##         Usec[k,:] = sample2D(U[k,:,:], self.Xm+deltaU, self.Ym)
+    ##         Vsec[k,:] = sample2D(V[k,:,:], self.Xm, self.Ym+deltaV)
+    ##     return self.nx*Usec + self.ny*Vsec
 
-    def extend_vertically(self, F):
-        """extends a 1D array to all s-levels"""
-        return np.outer(np.ones(self.N), F)
-        #return np.meshgrid(F, np.ones(self.N))[0]  # slower alternative
-    
-    def Flux(self, U, V):
-        """Returns 2D volume flux array"""
-        return self.Area * self.normal_current(U, V) * 1.0e-6
-        
-
-    def flux(self, U, V, mask=None):
-        """Compute net volume flux across the section
-
-        U, V are 3D current fields,
-        if mask: only computes flux where True
-
-        returns flux in Sverdrup, positive is net flux trough
-        in the right direction of the section
-
-        """
-
-        Flux = self.Area * self.normal_current(U, V)
-        if mask != None:
-            Flux = Flux[mask]
-        return np.sum(Flux) * 1.0e-6  # Convert to Sverdrup
-
-    # Room for improvement, cache the normal_current?    
-    def flux_r(self, U, V, mask=None):
-        """Compute volume flux across the section towards right
-
-        U, V are 3D current fields,
-        if mask: only computes flux where True
-
-        returns flux in Sverdrup
-
-        """
-
-        Flux = self.Area * self.normal_current(U, V)
-        if mask != None:
-            Flux = Flux[mask]
-        return np.sum(Flux[Flux>0]) * 1.0e-6  # Convert to Sverdrup
-    
-
-    
+    ## def extend_vertically(self, F):
+    ##     """extends a 1D array to all s-levels"""
+    ##     return np.outer(np.ones(self.N), F)
+    ##     #return np.meshgrid(F, np.ones(self.N))[0]  # slower alternative
 
 
+def linear_section(i0, i1, j0, j1, grd):
+    """Make a linear section between rho-points
 
+    Makes a section similar to romstools' tools.transect
 
+    Returns a section object
+    """
 
-        
+    if abs(i1-i0) >= abs(j0-j1): # Work horizontally
+        if i0 < i1:
+            X = np.arange(i0, i1+1)
+        elif i0 > i1:
+            X = np.arange(i0, i1-1, -1)
+        else:  # i0 = i1 and j0 = j1
+            raise ValueError, "Section reduced to a point"
+        slope = float(j1-j0) / (i1-i0)
+        Y = j0 + slope*(X-i0)
 
+    else:   # Work vertically
+        if j0 < j1:  
+            Y = np.arange(j0, j1+1)
+        else:
+            Y = np.arange(j0, j1-1, -1)
+        slope = float(i1-i0) / (j1-j0)
+        X = i0 + slope*(Y-j0)
 
+    return Section(grd, X, Y)

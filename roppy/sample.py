@@ -158,7 +158,7 @@ def sample2D(F, X, Y, mask=None, undef_value=0.0, outside_value=None):
  
     if np.rank(F) != 2:
         raise ValueError, "F must be 2D"
-    if mask != None:
+    if mask is not None:
         if mask.shape != F.shape:
             raise ValueError, "Must have mask.shape == F.shape"
     
@@ -195,7 +195,7 @@ def sample2D(F, X, Y, mask=None, undef_value=0.0, outside_value=None):
     W11 = P*Q
     SW = 1.0   # Sum of weigths
 
-    if mask != None:
+    if mask is not None:
         W00 = mask[J,I]     * W00
         W01 = mask[J+1,I]   * W01
         W10 = mask[J,I+1]   * W10

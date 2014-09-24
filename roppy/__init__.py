@@ -14,7 +14,7 @@ from sample import *
 from levels import nice, nice_levels
 from sgrid import SGrid
 
-from section import Section
+from section import *
 
 
 
