@@ -32,12 +32,11 @@ class Section(object):
 
         # Section size
         self.L = len(self.X)         # Number of nodes
-        self.__len__ = self.L
         self.N = len(self.grid.Cs_r)
 
         # Topography
         self.h = sample2D(self.grid.h, self.X, self.Y,
-                          mask=self.grid.mask_rho, undef_value=0.0)
+                          mask=self.grid.mask_rho, undef_value=1.0)
 
         # Metric
         pm = sample2D(self.grid.pm, self.X, self.Y)
@@ -64,6 +63,9 @@ class Section(object):
         self.dZ = self.z_w[1:, :]-self.z_w[:-1, :]
 
         self.Area = self.dZ * self.W
+
+    def __len__(self):
+        return self.L
 
     def sample2D(self, F):
         """Sample a horizontal field at rho poins with shape (Mp, Lp)"""
