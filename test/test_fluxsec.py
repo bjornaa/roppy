@@ -2,13 +2,15 @@ import unittest
 import numpy as np
 
 import sys
-#sys.path.append('..')
 sys.path = ['..'] + sys.path
-#sys.path = ['..'] 
 
 from roppy.fluxsec import *
 
+# ------------------------------------------
+
+
 class FakeGrid(object):
+    """An idealized grid class for testing"""
 
     def __init__(self, imax=20, jmax=16, kmax=10):
 
@@ -18,12 +20,13 @@ class FakeGrid(object):
         self.Cs_w = np.linspace(-1, 0, kmax+1)
         self.Cs_r = self.Cs_w[1:] - self.Cs_w[:-1]
         self.mask_rho = np.ones((jmax, imax))     # No land
-        self.Vtransform = 1                         
+        self.Vtransform = 1
         # dx = dy = 1000 m
         self.pm = 0.001 + np.zeros((jmax, imax))
         self.pn = 0.001 + np.zeros((jmax, imax))
 
 # ------------------------------------
+
 
 class TestFluxSec(unittest.TestCase):
     """Testing setup of FluxSection object"""
@@ -49,7 +52,7 @@ class TestFluxSec(unittest.TestCase):
         Ypos = [11.5, 12, 12.5, 13, 13.5]
         self.assertTrue(np.all(sec.X == Xpos))
         self.assertTrue(np.all(sec.Y == Ypos))
-        
+
         # edges 1 and 3 are U (counting from zero)
         U_edge = [False, True, False, True, False]
         V_edge = np.logical_not(U_edge)
@@ -66,7 +69,7 @@ class TestFluxSec(unittest.TestCase):
         # Vertically integrated
         self.assertTrue(np.all(np.sum(sec.dZ, axis=0) == sec.h))
         self.assertTrue(np.all(np.sum(sec.dSdZ, axis=0) == 1e5))
-        
+
     def test_closed_circuit(self):
         """Divergence free current trough a cloced 'section' gives zero flux"""
 
@@ -81,7 +84,7 @@ class TestFluxSec(unittest.TestCase):
         # Divergence of grid cell (1,1) is zero
         div = -V[-1, 0, 1] + U[-1, 1, 1] + V[-1, 1, 1] - U[-1, 1, 0]
         self.assertEqual(div, 0.0)
-        
+
         I = np.array([1, 2, 2, 1, 1])
         J = np.array([1, 1, 2, 2, 1])
 
@@ -90,12 +93,10 @@ class TestFluxSec(unittest.TestCase):
         self.assertEqual(Fnet, 0.0)
         self.assertEqual(Fout, (a+b)*1e5)
 
-        
-        
     def test_flux_alignment(self):
         """Using correct velocities to compute the flux"""
 
-        imax, jmax, kmax = 20, 16, 10
+        imax, jmax, kmax = 20, 16, 5
         i0, j0 = 4, 12
         i1, j1 = 7, 14
 
@@ -114,12 +115,12 @@ class TestFluxSec(unittest.TestCase):
         # grid cell (5, 13) -> (6, 13): u-point (6, 13)
         U[:, 13, 5] = b
 
-        flux,flux1 = sec.transport(U,V)
+        flux, flux1 = sec.transport(U, V)
         self.assertEqual(flux, (a+b)*1e5)
-        flux,flux1 = sec2.transport(U,V)
+        flux, flux1 = sec2.transport(U, V)
         self.assertEqual(flux, -(a+b)*1e5)
 
-        U = np.zeros((kmax, jmax, imax-1))
+        U = np.zeros((kmax, jmax, imax-1))  # reset U
         a, b, c = 1, 2, 4
         # grid cell (4, 11) -> (4, 12): v-point (4, 12)
         V[:, 11, 4] = a
@@ -127,18 +128,104 @@ class TestFluxSec(unittest.TestCase):
         V[:, 12, 5] = b
         # grid cell (6, 13) -> (6, 14): v-point (6, 14)
         V[:, 13, 6] = c
-        flux,flux1 = sec.transport(U, V)
+        flux, flux1 = sec.transport(U, V)
         self.assertEqual(flux, -(a+b+c)*1e5)
-        flux,flux1 = sec2.transport(U, V)
+        flux, flux1 = sec2.transport(U, V)
         self.assertEqual(flux, (a+b+c)*1e5)
-        
-
 
 # ------------------------------------
 
+
+class TestAnalytical(unittest.TestCase):
+    """Analytically defined testcases"""
+
+    def test_channel(self):
+        """Uniform channel flow"""
+
+        # Make a channel
+        imax, jmax, kmax = 20, 10, 5
+        grd = FakeGrid(imax, jmax, kmax)
+
+        # Constant current 1 m/s along channel
+        U = np.ones((kmax, jmax, imax-1))
+        V = np.zeros((kmax, jmax-1, imax-1))
+
+        # Flux depends only on j1-j0
+        i0, j0 = 2, 2
+        i1, j1 = 8, 5
+        I, J = staircase_from_line(i0, i1, j0, j1)
+        sec = FluxSection(grd, I, J)
+        Fnet, Fright = sec.transport(U, V)
+        self.assertEqual(Fnet, (j1-j0)*1e5)
+        self.assertEqual(Fright, (j1-j0)*1e5)
+
+        i0, j0 = 10, 2
+        i1, j1 = 11, 5
+        I, J = staircase_from_line(i0, i1, j0, j1)
+        sec = FluxSection(grd, I, J)
+        Fnet, Fright = sec.transport(U, V)
+        self.assertEqual(Fnet, (j1-j0)*1e5)
+        self.assertEqual(Fright, (j1-j0)*1e5)
+
+    def test_shear_current(self):
+
+        # Make a channel
+        imax, jmax, kmax = 20, 10, 5
+        grd = FakeGrid(imax, jmax, kmax)
+
+        # Make a shear current, in X-direction
+        U = np.empty((kmax, jmax, imax-1))
+        U[:, :, :] = np.arange(jmax)[None, :, None]
+        V = np.zeros((kmax, jmax-1, imax-1))
+
+        # Flux depends only on the j-values
+        i0, j0 = 2, 2
+        i1, j1 = 8, 5
+        I, J = staircase_from_line(i0, i1, j0, j1)
+
+        sec = FluxSection(grd, I, J)
+        Fnet, Fright = sec.transport(U, V)
+        anaflux = 1.0e5 * np.arange(j0, j1).sum()
+        self.assertEqual(Fnet, anaflux)
+
+    def test_solid_body_rotation(self):
+
+        # Make a grid
+        imax, jmax, kmax = 20, 10, 5
+        x0, y0 = 8, 5
+        grd = FakeGrid(imax, jmax, kmax)
+
+        # Solid body rotation
+        # U(x,y) = -(y-y0), V(x,y) = x-x0
+
+        # U[j,i] lives on (x,y) = (i+0.5, j)
+        U = np.empty((kmax, jmax, imax-1))
+        J = np.arange(0, jmax)
+        U[:, J, :] = - (J[None, :, None] - y0)
+
+        # V[j,i] lives on (x,y) = (i, j+0.5)
+        V = np.empty((kmax, jmax-1, imax))
+        I = np.arange(0, imax)
+        V[:, :, I] = I - x0
+
+        # ROMS psi-indices of symmetric section
+        # End points x = x0 +/- 1.5, y = y0 +/- 1.5
+        I = [7, 8, 8, 9, 9, 10, 10]
+        J = [4, 4, 5, 5, 6,  6,  7]
+
+        sec = FluxSection(grd, I, J)
+        F, F1 = sec.transport(U, V)
+        # Zero total flux
+        self.assertEqual(F, 0.0)
+        # Two contibutions to positive flux
+        pos_flux = (-V[-1, 3, 7] + U[-1, 4, 6]) * 1e5
+        self.assertEqual(F1, pos_flux)
+
+# ------------------------------------
+
+
 class TestStaircase(unittest.TestCase):
     """Testing the function staircase from line"""
-
 
     def test_nosec(self):
         """Section is a single point"""
@@ -147,7 +234,6 @@ class TestStaircase(unittest.TestCase):
         i1, j1 = 15, 7
 
         self.assertRaises(ValueError, staircase_from_line, i0, i1, j0, j1)
-                               
 
     def test_X(self):
         """A section in the X direction"""
@@ -159,7 +245,7 @@ class TestStaircase(unittest.TestCase):
 
         self.assertTrue(np.all(X == np.array([14, 15, 16, 17])))
         self.assertTrue(np.all(Y == np.array([4, 4, 4, 4])))
-                               
+
     def test_Y(self):
         """A section in the Y direction"""
 
@@ -182,7 +268,7 @@ class TestStaircase(unittest.TestCase):
                                np.array([14, 15, 15, 16, 16, 17, 17])))
         self.assertTrue(np.all(Y ==
                                np.array([4, 4, 5, 5, 6, 6, 7])))
-                               
+
     def test_Xdir_Xinc_Yinc(self):
         """X-direction, X, Y increasing"""
 
@@ -195,7 +281,7 @@ class TestStaircase(unittest.TestCase):
                                np.array([14, 15, 15, 16, 16, 17])))
         self.assertTrue(np.all(Y ==
                                np.array([4, 4, 5, 5, 6, 6])))
-                               
+
     def test_Xdir_Xinc_Ydec(self):
 
         i0, j0 = 14, 6
@@ -207,7 +293,7 @@ class TestStaircase(unittest.TestCase):
                                np.array([14, 15, 15, 16, 16, 17])))
         self.assertTrue(np.all(Y ==
                                np.array([6, 6, 5, 5, 4, 4])))
-                               
+
     def test_Xdir_Xdec_Yinc(self):
 
         i0, j0 = 17, 4
@@ -219,7 +305,7 @@ class TestStaircase(unittest.TestCase):
                                np.array([17, 16, 16, 15, 15, 14])))
         self.assertTrue(np.all(Y ==
                                np.array([4, 4, 5, 5, 6, 6])))
-        
+
     def test_Xdir_Xdec_Ydec(self):
 
         i0, j0 = 17, 6
@@ -255,7 +341,7 @@ class TestStaircase(unittest.TestCase):
                                np.array([14, 14, 15, 15, 16, 16])))
         self.assertTrue(np.all(Y ==
                                np.array([7, 6, 6, 5, 5, 4])))
-                               
+
     def test_Ydir_Xdec_Yinc(self):
 
         i0, j0 = 16, 4
@@ -267,7 +353,7 @@ class TestStaircase(unittest.TestCase):
                                np.array([16, 16, 15, 15, 14, 14])))
         self.assertTrue(np.all(Y ==
                                np.array([4, 5, 5, 6, 6, 7])))
-                               
+
     def test_Ydir_Xdec_Ydec(self):
 
         i0, j0 = 16, 7
@@ -279,10 +365,6 @@ class TestStaircase(unittest.TestCase):
                                np.array([16, 16, 15, 15, 14, 14])))
         self.assertTrue(np.all(Y ==
                                np.array([7, 6, 6, 5, 5, 4])))
-
-
-        
-
 
 # --------------------------------------
 

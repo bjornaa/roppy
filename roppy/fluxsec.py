@@ -2,7 +2,6 @@
 
 # Section class for flux calculations
 
-#import math
 import numpy as np
 
 from depth import sdepth
@@ -35,17 +34,16 @@ class FluxSection(object):
     def __init__(self, grid, I, J):
 
         self.grid = grid
-        self.I = I
-        self.J = J 
+        self.I = np.asarray(I)
+        self.J = np.asarray(J)
         # Grid coordinates of (mid points of) edges
-        self.X = 0.5*(I[:-1]+I[1:]) - 0.5
-        self.Y = 0.5*(J[:-1]+J[1:]) - 0.5
-        
+        self.X = 0.5*(self.I[:-1]+self.I[1:]) - 0.5
+        self.Y = 0.5*(self.J[:-1]+self.J[1:]) - 0.5
 
         # Logical indexing for U, V edges
-        E = np.arange(len(I)-1, dtype=int)  # Edge indices
-        self.Eu = (I[:-1] == I[1:])  # True for U edges
-        self.Ev = (J[:-1] == J[1:])  # True for V edges
+        E = np.arange(len(self.I)-1, dtype=int)  # Edge indices
+        self.Eu = (self.I[:-1] == self.I[1:])  # True for U edges
+        self.Ev = (self.J[:-1] == self.J[1:])  # True for V edges
 
         # Section size
         self.L = len(self.I)-1         # Number of nodes
@@ -67,7 +65,7 @@ class FluxSection(object):
         # dS = sqrt(dX**2 + dY**2) simplifies in this case
         self.dS = np.maximum(dX, dY)
         self.dX, self.dY = dX, dY
-        
+
         # Vertical structure
         self.z_w = sdepth(self.h, self.grid.hc, self.grid.Cs_w,
                           stagger='w', Vtransform=self.grid.Vtransform)
@@ -87,32 +85,31 @@ class FluxSection(object):
 
     def __len__(self):
         return self.L
-        
+
     def transport(self, U, V):
         #
         # if (jmax, imax) = shape(grid.h)
         # must have: shape(U) = (jmax, imax-1)
         #            shape(V) = (jmax-1, imax)
         #        U = np.zeros((kmax, jmax, imax-1))
-        #print self.J[self.Eu]-1, self.J[self.Ev]-1
 
         # U-edge, from psi(i,j) -> psi(i,j+1), dir=+1
-        #       ROMS: u(i,j), python: u[j, i-1], 
+        #       ROMS: u(i,j), python: u[j, i-1],
         # U-edge, from psi(i,j) -> psi(i, j-1), dir=-1
-        #       ROMS: u(i, j-1), python: u[j-1, i-1], 
+        #       ROMS: u(i, j-1), python: u[j-1, i-1],
         # In general:
         #   python: u[j-(1-dir)//2, i-1]
 
         # V-edge, psi(i,j) -> psi(i+1,j), dir=-1
         # dir have opposite role, use (1+dir)//2
-        
+
         dirU = self.dir[self.Eu]
         dirV = self.dir[self.Ev]
         IU = self.I[self.Eu]
         IV = self.I[self.Ev]
         JU = self.J[self.Eu]
         JV = self.J[self.Ev]
-        
+
         Usec = dirU * U[:, JU - (1-dirU)//2, IU - 1]
         Vsec = dirV * V[:, JV - 1, IV - (1+dirV)//2]
 
@@ -125,8 +122,8 @@ class FluxSection(object):
         Flux_plus = np.sum(UVsec[M] * self.dSdZ[M])
 
         return Flux, Flux_plus
-        
-        
+    
+# -------------------------------------------
 
 
 def staircase_from_line(i0, i1, j0, j1):
@@ -134,7 +131,7 @@ def staircase_from_line(i0, i1, j0, j1):
     swapXY = False
     if abs(i1-i0) < abs(j0-j1): # Mostly vertical
         i0, i1, j0, j1 = j0, j1, i0, i1
-        swapXY = True    
+        swapXY = True
 
     # Find integer points X0 and Y0 on line
     if i0 < i1:
@@ -142,13 +139,14 @@ def staircase_from_line(i0, i1, j0, j1):
     elif i0 > i1:
         X0 = list(range(i0, i1-1, -1))
     else:  # i0 = i1 and j0 = j1
-        raise ValueError, "Section reduced to a point"
+        raise ValueError("Section reduced to a point")
     slope = float(j1-j0) / (i1-i0)
     Y0 = [j0 + slope*(x-i0) for x in X0]
 
     # sign = -1 if Y0 is decreasing, otherwise sign = 1
     sign = 1
-    if Y0[-1] < Y0[0]: sign = -1   # Decreasing Y
+    if Y0[-1] < Y0[0]:     # Decreasing Y
+        sign = -1
 
     # Make lists of positions along staircase
     X, Y = [i0], [j0]
@@ -176,65 +174,3 @@ def staircase_from_line(i0, i1, j0, j1):
         X, Y = Y, X
 
     return np.array(X), np.array(Y)
-
-
-# -------------------------------------
-
-## # A synthetic grid object for testing
-## class FakeGrid(object):
-
-##     def __init__(self, imax, jmax, kmax):
-
-##         # Depth = constant = 100 m
-##         self.h = 100.0 + np.zeros((jmax, imax))
-##         self.hc = 10.0
-##         self.Cs_w = np.linspace(-1, 0, kmax+1)
-##         self.Cs_r = self.Cs_w[1:] - self.Cs_w[:-1]
-##         self.mask_rho = np.ones((jmax, imax))
-##         self.Vtransform = 1
-##         # dx = dy = 1000 m
-##         self.pm = 0.001 + np.zeros((jmax, imax))
-##         self.pn = 0.001 + np.zeros((jmax, imax))
-
-## imax = 20
-## jmax = 16
-## kmax = 10
-
-
-## i0, j0 = 4, 12
-## i1, j1 = 7, 14
-
-## I, J = staircase_from_line(i0, i1, j0, j1)
-
-## grd = FakeGrid(imax, jmax, kmax)
-
-## sec = FluxSection(grd, I, J)
-
-## print  sec.I
-## print sec.Eu, sec.Ev
-## print sec.X, sec.Y
-
-## print sec.dX, sec.dY, sec.dS
-## #print sec.J
-## #print sec.Ju, sec.Jv
-
-## print sec.dSdZ.shape
-
-## print "sec.dir = ", sec.dir
-
-## U = np.ones((kmax, jmax-1, imax))
-## V = np.zeros((kmax, imax, jmax-1))
-## #uflux = sec.transpu(U)
-
-## # Skal ha 2 u-kanter
-## # En kant har bredde 1000m og dypbde 100m
-## # Med strøm = 1 m/s blir dette 10000 m**3/s = 0.1 Sv
-## #
-## #print uflux / 1.0e6
-
-## flux, flux1 = sec.transport(U, V)
-
-## print "flux = ", flux / 1.0e6 , flux1/1e6
-
-
-
