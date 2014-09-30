@@ -221,6 +221,44 @@ class TestAnalytical(unittest.TestCase):
         pos_flux = (-V[-1, 3, 7] + U[-1, 4, 6]) * 1e5
         self.assertEqual(F1, pos_flux)
 
+    def test_path_independence(self):
+        """Flux is path independent in a non-divergent flow"""
+
+        imax, jmax, kmax = 20, 15, 5
+
+        grd = FakeGrid(imax, jmax, kmax)
+
+        # Make an "arbitrary" non-constant stream function
+        def f(y, x):
+            return np.sin(0.5*x + 0.8*y)
+        psi = np.fromfunction(f, (jmax-1, imax-1))
+
+        # Compute the non-divergent (curl) flow field
+        U = np.zeros((kmax, jmax, imax-1))
+        V = np.zeros((kmax, jmax-1, imax))
+        U[:, :-1, :] += psi[None, :, :]
+        U[:, 1:, :]  -= psi[None, :, :]
+        V[:, :, :-1] -= psi[None, :, :]
+        V[:, :, 1:]  += psi[None, :, :]
+
+        # Take three psi-points
+        i0, j0 = 3, 2
+        i1, j1 = 15, 6
+        i2, j2 = 6, 4
+
+        # Make the three sections
+        sec01 = FluxSection(grd, *staircase_from_line(i0, i1, j0, j1))
+        sec12 = FluxSection(grd, *staircase_from_line(i1, i2, j1, j2))
+        sec02 = FluxSection(grd, *staircase_from_line(i0, i2, j0, j2))
+
+        # Compute the fluxes
+        F01, _ = sec01.transport(U, V)
+        F12, _ = sec12.transport(U, V)
+        F02, _ = sec02.transport(U, V)
+
+        # Flux across path from point zero to two is independent of path
+        self.assertAlmostEqual(F01+F12, F02, places=10)
+        
 # ------------------------------------
 
 
