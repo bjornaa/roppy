@@ -404,6 +404,66 @@ class TestStaircase(unittest.TestCase):
         self.assertTrue(np.all(Y ==
                                np.array([7, 6, 6, 5, 5, 4])))
 
+# ---------------------------------
+
+class TestSampling(unittest.TestCase):
+    """Testing the scalar sampling methods"""
+
+    def test_X(self):
+        """Correct if F = X"""
+        imax, jmax, kmax = 10, 8, 5
+        grd = FakeGrid(imax, jmax, kmax)
+
+        # F[j,i] = i
+        F = np.empty((jmax, imax))
+        F[:, :] = np.arange(imax)[None,:]
+
+        # First a u-point at (1.5, 2)
+        # thereafter a v-point at (2, 2.5)
+        I = [2, 2, 3]
+        J = [1, 2, 2]
+        sec = FluxSection(grd, I, J)
+        self.assertTrue(np.all(sec.sample2D(F) == sec.X))
+
+    def test_linear(self):
+        """Correct for F linear in X and Y"""
+
+        imax, jmax, kmax = 10, 8, 5
+        grd = FakeGrid(imax, jmax, kmax)
+
+        a, b = 2.4, 1.9
+        F = np.empty((jmax, imax))
+        F[:, :] = np.fromfunction(lambda j, i: a*i + b*j, (jmax, imax))
+
+        i0, j0 = 1, 1
+        i1, j1 = 5, 3
+        sec = FluxSection(grd, *staircase_from_line(i0,i1,j0,j1))
+        self.assertTrue(np.all(np.abs(
+            sec.sample2D(F) - (a*sec.X + b*sec.Y)) < 1.e-14))
+        self.assertTrue(np.all(np.abs(
+            sec.sample2D2(F) - (a*sec.X + b*sec.Y)) < 1.e-14))
+
+    def test_linear2(self):
+        """Get all combinations of X and Y directions"""
+
+        imax, jmax, kmax = 10, 8, 5
+        grd = FakeGrid(imax, jmax, kmax)
+
+        a, b = 2.4, 1.9
+        F = np.empty((jmax, imax))
+        F[:, :] = np.fromfunction(lambda j, i: a*i + b*j, (jmax, imax))
+
+        I = [3, 4, 4, 3, 3]
+        J = [1, 1, 2, 2, 1]
+        sec = FluxSection(grd, I, J)
+        self.assertTrue(np.all(np.abs(
+            sec.sample2D(F) - (a*sec.X + b*sec.Y)) < 1.e-14))
+        self.assertTrue(np.all(np.abs(
+            sec.sample2D2(F) - (a*sec.X + b*sec.Y)) < 1.e-14))
+        # The two methods give identical results
+        self.assertTrue(np.all(sec.sample2D(F) == sec.sample2D2(F)))
+
+
 # --------------------------------------
 
 if __name__ == '__main__':

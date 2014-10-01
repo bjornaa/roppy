@@ -12,14 +12,10 @@ class FluxSection(object):
     """Class for flux calculations across sections
 
     A FluxSection object is defined by a sequence of psi-points
+    following a staircase curve
 
     psi-points are indexed using ROMS convention (one-based)
     psi(i,j) = psi[j-1, i-1] lives at x=i-0.5, y=j-0.5
-
-
-    NOTE: not yet defined if psi-point (i,j) lives at
-    x = i-0.5 or x = i+0.5 and similar for y
-    Follow the convention of pyroms (check)
 
     The grid information is defined by a grid object having attributes
 
@@ -40,24 +36,34 @@ class FluxSection(object):
         self.X = 0.5*(self.I[:-1]+self.I[1:]) - 0.5
         self.Y = 0.5*(self.J[:-1]+self.J[1:]) - 0.5
 
-        # Logical indexing for U, V edges
-        E = np.arange(len(self.I)-1, dtype=int)  # Edge indices
-        self.Eu = (self.I[:-1] == self.I[1:])  # True for U edges
-        self.Ev = (self.J[:-1] == self.J[1:])  # True for V edges
-
         # Section size
         self.L = len(self.I)-1         # Number of nodes
         self.N = len(self.grid.Cs_r)
 
+        # Logical indexing for U, V edges
+        E = np.arange(self.L, dtype=int)       # Edge indices
+        self.Eu = (self.I[:-1] == self.I[1:])  # True for U edges
+        self.Ev = (self.J[:-1] == self.J[1:])  # True for V edges
+
+        # Direction
+        # Convention, positive flux to the right of the sequence
+        # U-edge: pointing up, positive flux right,   dir = +1
+        #         pointing down, positive lux left,   dir = -1
+        # V-edge: pointing right, positive flux down, dir = -1
+        #         pointing left, positive flux up,    dir = +1
+        dir = np.zeros((self.L,), dtype=int)
+        dir[self.Eu] =   self.J[1:][self.Eu] - self.J[:-1][self.Eu]
+        dir[self.Ev] = - self.I[1:][self.Ev] + self.I[:-1][self.Ev]
+        self.dir = dir
+
         # Topography
         # Could simplify, since sampling here is
         # simply averaging of two values
-        self.h = sample2D(self.grid.h, self.X, self.Y,
-                          mask=self.grid.mask_rho)
+        self.h = self.sample2D(self.grid.h)
 
         # Metric
-        pm = sample2D(self.grid.pm, self.X, self.Y)
-        pn = sample2D(self.grid.pn, self.X, self.Y)
+        pm = self.sample2D(self.grid.pm)
+        pn = self.sample2D(self.grid.pn)
 
         # Distance along section
         dX = np.where(self.Ev, 1.0/pm, 0)
@@ -72,22 +78,14 @@ class FluxSection(object):
         self.dZ = self.z_w[1:, :]-self.z_w[:-1, :]
         self.dSdZ = self.dS * self.dZ
 
-        # Direction
-        # Convention, positive flux to the right of the sequence
-        # U-edge: pointing up, positive flux right,   dir = +1
-        #         pointing down, positive lux left,   dir = -1
-        # V-edge: pointing right, positive flux down, dir = -1
-        #         pointing left, positive flux up,    dir = +1
-        dir = np.zeros((self.L,), dtype=int)
-        dir[self.Eu] =   self.J[1:][self.Eu] - self.J[:-1][self.Eu]
-        dir[self.Ev] = - self.I[1:][self.Ev] + self.I[:-1][self.Ev]
-        self.dir = dir
 
     def __len__(self):
         return self.L
 
-    def transport(self, U, V):
-        #
+
+    def flux_array(self, U, V):
+        """Returns a 2D field of fluxes through the section"""
+
         # if (jmax, imax) = shape(grid.h)
         # must have: shape(U) = (jmax, imax-1)
         #            shape(V) = (jmax-1, imax)
@@ -117,12 +115,65 @@ class FluxSection(object):
         UVsec[:, self.Eu] = Usec
         UVsec[:, self.Ev] = Vsec
 
+        return UVsec
+
+# -------------------------------        
+
+    def transport(self, U, V):
+        """Integrated flux though the section"""
+
+        UVsec = self.flux_array(U, V)
+
         Flux = np.sum(UVsec * self.dSdZ)
         M = UVsec > 0
         Flux_plus = np.sum(UVsec[M] * self.dSdZ[M])
 
         return Flux, Flux_plus
-    
+
+# ---------------------------------
+
+    def sample2D(self, F):
+        """Sample a horizontal field (rho-points) to the section edges"""
+
+        # Could simplify since average og two neighbouring rho-cells
+        
+        #return sample2D(F, self.X, self.Y)
+        
+        dirU = self.dir[self.Eu]
+        dirV = self.dir[self.Ev]
+        IU = self.I[self.Eu]
+        IV = self.I[self.Ev]
+        JU = self.J[self.Eu]
+        JV = self.J[self.Ev]
+
+        FU = 0.5*(F[JU - (1-dirU)//2, IU] + F[JU - (1-dirU)//2, IU-1])
+        FV = 0.5*(F[JV, IV - (1+dirV)//2] + F[JV-1, IV - (1+dirV)//2])
+        Fsec = np.empty((self.L,), F.dtype)
+        Fsec[self.Eu] = FU
+        Fsec[self.Ev] = FV
+        return Fsec
+#         
+        
+    def sample2D2(self, F):
+        """Sample a horizontal field (rho-points) to the section edges"""
+
+        # Identical results, but twice running time
+        
+        return sample2D(F, self.X, self.Y)
+
+# ---------------------------------
+
+    def sample3D(self, F):
+        """Sample a 3D (rho-)field to the section"""
+
+        # Could be simplified bu sample2D above
+
+        Fsec = np.zeros((self.N, self.L))
+        for k in range(self.grid.N):
+            Fsec[k,:] = sample2D(F[k,:,:], self.X, self.Y)
+        return Fsec
+
+
 # -------------------------------------------
 
 
