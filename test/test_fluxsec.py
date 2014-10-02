@@ -281,8 +281,8 @@ class TestStaircase(unittest.TestCase):
 
         X, Y = staircase_from_line(i0, i1, j0, j1)
 
-        self.assertTrue(np.all(X == np.array([14, 15, 16, 17])))
-        self.assertTrue(np.all(Y == np.array([4, 4, 4, 4])))
+        self.assertTrue(np.all(X == [14, 15, 16, 17]))
+        self.assertTrue(np.all(Y == [4, 4, 4, 4]))
 
     def test_Y(self):
         """A section in the Y direction"""
@@ -292,8 +292,8 @@ class TestStaircase(unittest.TestCase):
 
         X, Y = staircase_from_line(i0, i1, j0, j1)
 
-        self.assertTrue(np.all(X == np.array([14, 14, 14, 14])))
-        self.assertTrue(np.all(Y == np.array([4, 5, 6, 7])))
+        self.assertTrue(np.all(X == [14, 14, 14, 14]))
+        self.assertTrue(np.all(Y == [4, 5, 6, 7]))
 
     def test_XY(self):
         """A diagonal section"""
@@ -302,10 +302,9 @@ class TestStaircase(unittest.TestCase):
         i1, j1 = 17, 7
 
         X, Y = staircase_from_line(i0, i1, j0, j1)
-        self.assertTrue(np.all(X ==
-                               np.array([14, 15, 15, 16, 16, 17, 17])))
-        self.assertTrue(np.all(Y ==
-                               np.array([4, 4, 5, 5, 6, 6, 7])))
+
+        self.assertTrue(np.all(X == [14, 15, 15, 16, 16, 17, 17]))
+        self.assertTrue(np.all(Y == [4, 4, 5, 5, 6, 6, 7]))
 
     def test_Xdir_Xinc_Yinc(self):
         """X-direction, X, Y increasing"""
@@ -315,10 +314,8 @@ class TestStaircase(unittest.TestCase):
 
         X, Y = staircase_from_line(i0, i1, j0, j1)
 
-        self.assertTrue(np.all(X ==
-                               np.array([14, 15, 15, 16, 16, 17])))
-        self.assertTrue(np.all(Y ==
-                               np.array([4, 4, 5, 5, 6, 6])))
+        self.assertTrue(np.all(X == [14, 15, 15, 16, 16, 17]))
+        self.assertTrue(np.all(Y == [4, 4, 5, 5, 6, 6]))
 
     def test_Xdir_Xinc_Ydec(self):
 
@@ -327,10 +324,8 @@ class TestStaircase(unittest.TestCase):
 
         X, Y = staircase_from_line(i0, i1, j0, j1)
 
-        self.assertTrue(np.all(X ==
-                               np.array([14, 15, 15, 16, 16, 17])))
-        self.assertTrue(np.all(Y ==
-                               np.array([6, 6, 5, 5, 4, 4])))
+        self.assertTrue(np.all(X == [14, 15, 15, 16, 16, 17]))
+        self.assertTrue(np.all(Y == [6, 6, 5, 5, 4, 4]))
 
     def test_Xdir_Xdec_Yinc(self):
 
@@ -339,10 +334,8 @@ class TestStaircase(unittest.TestCase):
 
         X, Y = staircase_from_line(i0, i1, j0, j1)
 
-        self.assertTrue(np.all(X ==
-                               np.array([17, 16, 16, 15, 15, 14])))
-        self.assertTrue(np.all(Y ==
-                               np.array([4, 4, 5, 5, 6, 6])))
+        self.assertTrue(np.all(X == [17, 16, 16, 15, 15, 14]))
+        self.assertTrue(np.all(Y == [4, 4, 5, 5, 6, 6]))
 
     def test_Xdir_Xdec_Ydec(self):
 
@@ -351,10 +344,8 @@ class TestStaircase(unittest.TestCase):
 
         X, Y = staircase_from_line(i0, i1, j0, j1)
 
-        self.assertTrue(np.all(X ==
-                               np.array([17, 16, 16, 15, 15, 14])))
-        self.assertTrue(np.all(Y ==
-                               np.array([6, 6, 5, 5, 4, 4])))
+        self.assertTrue(np.all(X == [17, 16, 16, 15, 15, 14]))
+        self.assertTrue(np.all(Y == [6, 6, 5, 5, 4, 4]))
 
     def test_Ydir_Xinc_Yinc(self):
 
@@ -363,10 +354,8 @@ class TestStaircase(unittest.TestCase):
 
         X, Y = staircase_from_line(i0, i1, j0, j1)
 
-        self.assertTrue(np.all(X ==
-                               np.array([14, 14, 15, 15, 16, 16])))
-        self.assertTrue(np.all(Y ==
-                               np.array([4, 5, 5, 6, 6, 7])))
+        self.assertTrue(np.all(X == [14, 14, 15, 15, 16, 16]))
+        self.assertTrue(np.all(Y == [4, 5, 5, 6, 6, 7]))
 
     def test_Ydir_Xinc_Ydec(self):
 
@@ -375,10 +364,8 @@ class TestStaircase(unittest.TestCase):
 
         X, Y = staircase_from_line(i0, i1, j0, j1)
 
-        self.assertTrue(np.all(X ==
-                               np.array([14, 14, 15, 15, 16, 16])))
-        self.assertTrue(np.all(Y ==
-                               np.array([7, 6, 6, 5, 5, 4])))
+        self.assertTrue(np.all(X == [14, 14, 15, 15, 16, 16]))
+        self.assertTrue(np.all(Y == [ 7,  6,  6,  5,  5,  4]))
 
     def test_Ydir_Xdec_Yinc(self):
 
@@ -387,10 +374,8 @@ class TestStaircase(unittest.TestCase):
 
         X, Y = staircase_from_line(i0, i1, j0, j1)
 
-        self.assertTrue(np.all(X ==
-                               np.array([16, 16, 15, 15, 14, 14])))
-        self.assertTrue(np.all(Y ==
-                               np.array([4, 5, 5, 6, 6, 7])))
+        self.assertTrue(np.all(X == [16, 16, 15, 15, 14, 14]))
+        self.assertTrue(np.all(Y == [4, 5, 5, 6, 6, 7]))
 
     def test_Ydir_Xdec_Ydec(self):
 
@@ -399,10 +384,8 @@ class TestStaircase(unittest.TestCase):
 
         X, Y = staircase_from_line(i0, i1, j0, j1)
 
-        self.assertTrue(np.all(X ==
-                               np.array([16, 16, 15, 15, 14, 14])))
-        self.assertTrue(np.all(Y ==
-                               np.array([7, 6, 6, 5, 5, 4])))
+        self.assertTrue(np.all(X == [16, 16, 15, 15, 14, 14]))
+        self.assertTrue(np.all(Y == [7, 6, 6, 5, 5, 4]))
 
 # ---------------------------------
 

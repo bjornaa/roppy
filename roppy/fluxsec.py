@@ -117,7 +117,7 @@ class FluxSection(object):
 
         return UVsec
 
-# -------------------------------        
+# -------------------------------
 
     def transport(self, U, V):
         """Integrated flux though the section"""
@@ -136,9 +136,9 @@ class FluxSection(object):
         """Sample a horizontal field (rho-points) to the section edges"""
 
         # Could simplify since average og two neighbouring rho-cells
-        
+
         #return sample2D(F, self.X, self.Y)
-        
+
         dirU = self.dir[self.Eu]
         dirV = self.dir[self.Ev]
         IU = self.I[self.Eu]
@@ -152,13 +152,13 @@ class FluxSection(object):
         Fsec[self.Eu] = FU
         Fsec[self.Ev] = FV
         return Fsec
-#         
-        
+#
+
     def sample2D2(self, F):
         """Sample a horizontal field (rho-points) to the section edges"""
 
         # Identical results, but twice running time
-        
+
         return sample2D(F, self.X, self.Y)
 
 # ---------------------------------
@@ -172,7 +172,6 @@ class FluxSection(object):
         for k in range(self.grid.N):
             Fsec[k,:] = sample2D(F[k,:,:], self.X, self.Y)
         return Fsec
-
 
 # -------------------------------------------
 
@@ -206,20 +205,20 @@ def staircase_from_line(i0, i1, j0, j1):
         x, y = X[-1], Y[-1]          # Last point on list
         x0, y0 = X0[i], Y0[i]        # Present point along line
         x1, y1 = X0[i+1], Y0[i+1]    # Next point along line
-        if abs(y - y1) > 0.5:        # Append extra point
-            if sign*(y - y0) < 0:        # Jump first
-                X.append(x0)
-                Y.append(y+sign)
-                X.append(x1)
-                Y.append(y+sign)
-            else:                        # Jump last
-                X.append(x1)
-                Y.append(y)
-                X.append(x1)
-                Y.append(y+sign)
+        if abs(y-y0) + abs(y-y1) > abs(y+sign-y0) + abs(y+sign-y1):
+            # jump
+            X.append(x0)
+            Y.append(y+sign)
+            X.append(x1)
+            Y.append(y+sign)
         else:                        # Ordinary append
             X.append(x1)
             Y.append(y)
+    # Possible jump to last point
+    # Assumes Y0[-1]
+    if Y[-1] != j1:
+        X.append(i1)
+        Y.append(j1)
 
     if swapXY:
         X, Y = Y, X
