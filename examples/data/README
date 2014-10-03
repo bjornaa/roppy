@@ -13,4 +13,13 @@ ocean_avg_example.nc   94 577 488 bytes (uncompressed)
 
 Download:
 wget http://roppy.googlecode.com/files/ocean_avg_example.nc.gz
-gunzip /ocean_avg_example.nc.gz
+gunzip ocean_avg_example.nc.gz
+
+About the data set
+------------------
+
+ocean_avg_example.nc.gz is a gzipped version of a ROMS average file.
+The file is produced by a slightly old ROMS version used for regional
+climate downscaling for the North Sea. The run is documented in the
+paper: B. Ådlandsvik and M. Bentsen, 2007, Downscaling a 20th century
+global climate simulation to the North Sea, Ocean Dyn., 57, 453-466.

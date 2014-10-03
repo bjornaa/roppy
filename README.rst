@@ -6,6 +6,9 @@ analyse and visualize results from the Regional Ocean Model System
 (ROMS).
 
 Emphasis is on building a useful set of examples.
+To run the examples unmodified download and gunzop the ROMS average file
+http://roppy.googlecode.com/files/ocean_avg_example.nc.gz
+to the directory examples/data.
 
 Alternative python packages for ROMS::
 
