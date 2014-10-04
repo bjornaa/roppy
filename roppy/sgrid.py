@@ -20,6 +20,8 @@ Classes
 
 
 import numpy as np
+from netCDF4 import Dataset
+
 from depth import sdepth, zslice, s_stretch
 from sample import sample2D, bilin_inv
 
@@ -36,7 +38,8 @@ class SGrid(object):
     roms2soda's grdClass.
 
     Note: Can not (yet) be initialized from a standard grd-file,
-    use initial, history or average file
+    use initial, history or average file or supply extra vertical
+    information by Vinfo or Vfile.
 
     Typical usage::
     
@@ -51,7 +54,7 @@ class SGrid(object):
 
     """
 
-    def __init__(self, ncid, subgrid=None, Vinfo=None):
+    def __init__(self, ncid, subgrid=None, Vinfo=None, Vfile=None):
 
         # ----------------------------------
         # Handle the vertical discretization
@@ -74,6 +77,31 @@ class SGrid(object):
                                   stagger='rho', Vstretching=self.Vstretching)
             self.Cs_w = s_stretch(self.N, Vinfo['theta_s'], Vinfo['theta_b'],
                                   stagger='w', Vstretching=self.Vstretching)
+            
+        elif Vfile:  # Read vertical info from separate file
+
+            f0 = Dataset(Vfile)
+
+            self.hc = f0.variables['hc'].getValue()
+            self.Cs_r = f0.variables['Cs_r'][:]
+            self.Cs_w = f0.variables['Cs_w'][:]
+
+            # Vertical grid size
+            self.N = len(self.Cs_r)       
+
+            # Vertical transform
+            self.Vtransform = 1  # Default
+            try:   # Look for standard_name attribute of variable s_rho
+                v = f0.variables['s_rho']
+                if v.standard_name[-1] == '2':
+                    self.Vtransform = 2
+            # No variable s_rho or no standard_name attribute
+            except (KeyError, RuntimeError): 
+                pass                    # keep default Vtransform = 1
+
+            
+            f0.close()
+            
             
         else:  # Read vertical info from the file
 
