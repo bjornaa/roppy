@@ -115,20 +115,18 @@ class FluxSection(object):
         UVsec[:, self.Eu] = Usec
         UVsec[:, self.Ev] = Vsec
 
-        return UVsec
+        return UVsec * self.dSdZ
 
 # -------------------------------
 
     def transport(self, U, V):
         """Integrated flux though the section"""
 
-        UVsec = self.flux_array(U, V)
+        Flux = self.flux_array(U, V)
+        tot_flux = np.sum(Flux)
+        pos_flux = np.sum(Flux[Flux > 0])
 
-        Flux = np.sum(UVsec * self.dSdZ)
-        M = UVsec > 0
-        Flux_plus = np.sum(UVsec[M] * self.dSdZ[M])
-
-        return Flux, Flux_plus
+        return tot_flux, pos_flux
 
 # ---------------------------------
 
