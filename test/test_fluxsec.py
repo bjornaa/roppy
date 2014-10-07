@@ -24,6 +24,10 @@ class FakeGrid(object):
         # dx = dy = 1000 m
         self.pm = 0.001 + np.zeros((jmax, imax))
         self.pn = 0.001 + np.zeros((jmax, imax))
+        # no offset
+        self.i0 = 0
+        self.j0 = 0
+
 
 # ------------------------------------
 
@@ -260,6 +264,39 @@ class TestAnalytical(unittest.TestCase):
         self.assertAlmostEqual(F01+F12, F02, places=10)
 
 # ------------------------------------
+
+
+class TestSubGrid(unittest.TestCase):
+
+
+    def test_shear_current(self):
+
+        # Make a channel
+        imax, jmax, kmax = 20, 10, 5
+        grd = FakeGrid(imax, jmax, kmax)
+
+        # Make a shear current, in X-direction
+        U = np.empty((kmax, jmax, imax-1))
+        U[:, :, :] = np.arange(jmax)[None, :, None]
+        V = np.zeros((kmax, jmax-1, imax-1))
+
+        # Flux depends only on the j-values
+        i0, j0 = 6, 3
+        i1, j1 = 12, 5
+        I, J = staircase_from_line(i0, i1, j0, j1)
+
+        # Fake a subgrid, and adjust velocity accordingly
+        grd.i0 = 3
+        grd.j0 = 1
+        U = U[:, grd.j0:, grd.i0-1:]
+        V = V[:, grd.j0-1:, grd.i0:]
+
+        sec = FluxSection(grd, I, J)
+        Fnet, Fright = sec.transport(U, V)
+        anaflux = 1.0e5 * np.arange(j0, j1).sum()
+        self.assertEqual(Fnet, anaflux)
+
+# ---------------------------------------------------
 
 
 class TestStaircase(unittest.TestCase):

@@ -30,7 +30,7 @@ from sample import sample2D, bilin_inv
 # ------------------------------------------------------
 
 class SGrid(object):
-    
+
     """Simple ROMS grid object
 
     Simple, minimal ROMS 3D grid object, for keeping important
@@ -42,7 +42,7 @@ class SGrid(object):
     information by Vinfo or Vfile.
 
     Typical usage::
-    
+
     >>> fid = Dataset(roms_file)
     >>> grd = SGrid(fid)
 
@@ -77,7 +77,7 @@ class SGrid(object):
                                   stagger='rho', Vstretching=self.Vstretching)
             self.Cs_w = s_stretch(self.N, Vinfo['theta_s'], Vinfo['theta_b'],
                                   stagger='w', Vstretching=self.Vstretching)
-            
+
         elif Vfile:  # Read vertical info from separate file
 
             f0 = Dataset(Vfile)
@@ -87,7 +87,7 @@ class SGrid(object):
             self.Cs_w = f0.variables['Cs_w'][:]
 
             # Vertical grid size
-            self.N = len(self.Cs_r)       
+            self.N = len(self.Cs_r)
 
             # Vertical transform
             self.Vtransform = 1  # Default
@@ -96,13 +96,11 @@ class SGrid(object):
                 if v.standard_name[-1] == '2':
                     self.Vtransform = 2
             # No variable s_rho or no standard_name attribute
-            except (KeyError, RuntimeError): 
-                pass                    # keep default Vtransform = 1
+            except (KeyError, RuntimeError):
+                pass                    # keep old default Vtransform = 1
 
-            
             f0.close()
-            
-            
+
         else:  # Read vertical info from the file
 
             self.hc = ncid.variables['hc'].getValue()
@@ -110,7 +108,7 @@ class SGrid(object):
             self.Cs_w = ncid.variables['Cs_w'][:]
 
             # Vertical grid size
-            self.N = len(self.Cs_r)       
+            self.N = len(self.Cs_r)
 
             # Vertical transform
             self.Vtransform = 1  # Default
@@ -120,9 +118,9 @@ class SGrid(object):
                     self.Vtransform = 2
 
             # No variable s_rho or no standard_name attribute
-            except (KeyError, RuntimeError): 
+            except (KeyError, RuntimeError):
                 pass                    # keep default Vtransform = 1
-        
+
         # ---------------------
         # Subgrid specification
         # ---------------------
@@ -161,7 +159,7 @@ class SGrid(object):
         j1_v = min(self.j1, Mp-1)
         self.i0_u = i0_u
         self.j0_v = j0_v
-         
+
         self.Iu = slice(i0_u, i1_u)
         self.Ju = self.J
         self.Iv = self.I
@@ -176,8 +174,8 @@ class SGrid(object):
         self.xmax = float(self.i1 - 1)
         self.ymin = float(self.j0)
         self.ymax = float(self.j1 - 1)
-        
-        # Grid cell centers 
+
+        # Grid cell centers
         self.X = np.arange(self.i0, self.i1)
         self.Y = np.arange(self.j0, self.j1)
         # U points
@@ -189,8 +187,10 @@ class SGrid(object):
         # Grid cell boundaries = psi-points
         self.Xb = np.arange(self.i0-0.5, self.i1)
         self.Yb = np.arange(self.j0-0.5, self.j1)
-            
+
         # Read variables from the NetCDF file
+        # ------------------------------------
+        
         self.h = ncid.variables['h'][self.J, self.I]
         # mask_rho should not be masked
         self.mask_rho = np.array(ncid.variables['mask_rho'][self.J, self.I])
@@ -225,11 +225,11 @@ class SGrid(object):
     # Unødvendig?
     def sample2D(self, F, X, Y, mask=True, undef=np.nan):
         if mask:
-            return sample2D(F, X, Y, mask=self.mask_rho, 
+            return sample2D(F, X, Y, mask=self.mask_rho,
                             undef_value=undef)
         else:
             return sample2D(F, X, Y)
-    
+
 
     def zslice(self, F, z):
         return zslice(F, self.z_r, -abs(z))
@@ -244,4 +244,4 @@ class SGrid(object):
 
 
 
-    
+

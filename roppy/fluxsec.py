@@ -30,7 +30,7 @@ class FluxSection(object):
     def __init__(self, grid, I, J):
 
         self.grid = grid
-        self.I = np.asarray(I)
+        self.I = np.asarray(I) 
         self.J = np.asarray(J)
         # Grid coordinates of (mid points of) edges
         self.X = 0.5*(self.I[:-1]+self.I[1:]) - 0.5
@@ -103,17 +103,23 @@ class FluxSection(object):
 
         dirU = self.dir[self.Eu]
         dirV = self.dir[self.Ev]
-        IU = self.I[self.Eu]
-        IV = self.I[self.Ev]
-        JU = self.J[self.Eu]
-        JV = self.J[self.Ev]
 
-        Usec = dirU * U[:, JU - (1-dirU)//2, IU - 1]
-        Vsec = dirV * V[:, JV - 1, IV - (1+dirV)//2]
+        # A subgrid has velocity components at the boundaries
+        # giving an extra velocity offset
+        ioff, joff = 0, 0
+        if self.grid.i0 > 0:  
+            ioff = 1
+        if self.grid.j0 > 0:
+            joff = 1
 
-        UVsec = np.zeros((self.N, self.L))
-        UVsec[:, self.Eu] = Usec
-        UVsec[:, self.Ev] = Vsec
+        IU = self.I[self.Eu] - 1 - self.grid.i0 + ioff
+        IV = self.I[self.Ev] - (1+dirV)//2 - self.grid.i0
+        JU = self.J[self.Eu] - (1-dirU)//2 - self.grid.j0
+        JV = self.J[self.Ev] - 1 - self.grid.j0 + joff
+        
+        UVsec = np.empty((self.N, self.L))
+        UVsec[:, self.Eu] = dirU * U[:, JU, IU]
+        UVsec[:, self.Ev] = dirV * V[:, JV, IV]
 
         return UVsec * self.dSdZ
 
@@ -139,16 +145,20 @@ class FluxSection(object):
 
         dirU = self.dir[self.Eu]
         dirV = self.dir[self.Ev]
-        IU = self.I[self.Eu]
-        IV = self.I[self.Ev]
-        JU = self.J[self.Eu]
-        JV = self.J[self.Ev]
 
-        FU = 0.5*(F[JU - (1-dirU)//2, IU] + F[JU - (1-dirU)//2, IU-1])
-        FV = 0.5*(F[JV, IV - (1+dirV)//2] + F[JV-1, IV - (1+dirV)//2])
+        # Find indices
+        IU = self.I[self.Eu] - self.grid.i0
+        IV = self.I[self.Ev] - (1+dirV)//2 - self.grid.i0
+        JU = self.J[self.Eu] - (1-dirU)//2 - self.grid.j0
+        JV = self.J[self.Ev] - self.grid.j0
+
+        # Average F to U- and V-points
         Fsec = np.empty((self.L,), F.dtype)
-        Fsec[self.Eu] = FU
-        Fsec[self.Ev] = FV
+        Fsec[self.Eu] = 0.5*(F[JU, IU] + F[JU, IU-1])
+        Fsec[self.Ev] = 0.5*(F[JV, IV] + F[JV-1, IV])
+        
+        #Fsec[self.Eu] = FU
+        #Fsec[self.Ev] = FV
         return Fsec
 
 # ---------------------------------
@@ -160,7 +170,7 @@ class FluxSection(object):
 
         Fsec = np.zeros((self.N, self.L))
         for k in range(self.grid.N):
-            Fsec[k,:] = sec.sample2D(F[k,:,:])
+            Fsec[k,:] = self.sample2D(F[k,:,:])
         return Fsec
 
 # -------------------------------------------
