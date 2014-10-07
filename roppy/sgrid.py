@@ -235,12 +235,12 @@ class SGrid(object):
         return zslice(F, self.z_r, -abs(z))
 
     def xy2ll(self, x, y):
-        return sample2D(self.lon_rho, x, y),    \
-               sample2D(self.lat_rho, x, y)
+        return sample2D(self.lon_rho, x-self.i0, y-self.j0),    \
+               sample2D(self.lat_rho, x-self.i0, y-self.j0)
 
     def ll2xy(self, lon, lat):
         y, x = bilin_inv(lon, lat, self.lon_rho, self.lat_rho)
-        return x, y
+        return x + self.i0, y + self.j0
 
 
 

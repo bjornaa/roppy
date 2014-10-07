@@ -127,6 +127,26 @@ class Test_sample2D(unittest.TestCase):
         b_mask = sample2D(A, x, y, mask=M, undef_value=np.nan)
         self.assertTrue(np.isnan(b_mask))
 
+    # ------------------------------------------------
+
+    def test_offset_forwards(self):
+        
+        # Make a grid with a bilinear function
+        f = lambda x, y: 3.0 + 2*x + 1.4*y + 0.2*x*y
+        #f = lambda y, x: x
+
+        # Make a grid with offset
+        i0, i1, j0, j1 = 2, 10, 3, 8
+        II0, JJ0 = np.meshgrid(np.arange(i0, i1), np.arange(j0, j1))
+
+        A = f(II0, JJ0)
+        x, y = 8.9, 4.1
+        z = f(x, y)
+
+        a = sample2D(A, x-i0, y-j0)
+        self.assertAlmostEqual(a, z)
+
+
 
 if __name__ == '__main__':
     unittest.main()
