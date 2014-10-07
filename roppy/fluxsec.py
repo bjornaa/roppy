@@ -5,7 +5,7 @@
 import numpy as np
 
 from depth import sdepth
-from sample import sample2D
+#from sample import sample2D
 
 
 class FluxSection(object):
@@ -150,14 +150,6 @@ class FluxSection(object):
         Fsec[self.Eu] = FU
         Fsec[self.Ev] = FV
         return Fsec
-#
-
-    def sample2D2(self, F):
-        """Sample a horizontal field (rho-points) to the section edges"""
-
-        # Identical results, but twice running time
-
-        return sample2D(F, self.X, self.Y)
 
 # ---------------------------------
 
@@ -168,7 +160,7 @@ class FluxSection(object):
 
         Fsec = np.zeros((self.N, self.L))
         for k in range(self.grid.N):
-            Fsec[k,:] = sample2D(F[k,:,:], self.X, self.Y)
+            Fsec[k,:] = sec.sample2D(F[k,:,:])
         return Fsec
 
 # -------------------------------------------

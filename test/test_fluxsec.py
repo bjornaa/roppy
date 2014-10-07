@@ -258,7 +258,7 @@ class TestAnalytical(unittest.TestCase):
 
         # Flux across path from point zero to two is independent of path
         self.assertAlmostEqual(F01+F12, F02, places=10)
-        
+
 # ------------------------------------
 
 
@@ -423,8 +423,6 @@ class TestSampling(unittest.TestCase):
         sec = FluxSection(grd, *staircase_from_line(i0,i1,j0,j1))
         self.assertTrue(np.all(np.abs(
             sec.sample2D(F) - (a*sec.X + b*sec.Y)) < 1.e-14))
-        self.assertTrue(np.all(np.abs(
-            sec.sample2D2(F) - (a*sec.X + b*sec.Y)) < 1.e-14))
 
     def test_linear2(self):
         """Get all combinations of X and Y directions"""
@@ -441,10 +439,6 @@ class TestSampling(unittest.TestCase):
         sec = FluxSection(grd, I, J)
         self.assertTrue(np.all(np.abs(
             sec.sample2D(F) - (a*sec.X + b*sec.Y)) < 1.e-14))
-        self.assertTrue(np.all(np.abs(
-            sec.sample2D2(F) - (a*sec.X + b*sec.Y)) < 1.e-14))
-        # The two methods give identical results
-        self.assertTrue(np.all(sec.sample2D(F) == sec.sample2D2(F)))
 
 
 # --------------------------------------
