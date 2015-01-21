@@ -3,7 +3,7 @@ from netCDF4 import Dataset
 
 # Import development version of roppy
 import sys
-sys.path = ['..'] + sys.path()
+sys.path = ['..'] + sys.path
 import roppy
 
 # --- EDIT -----------------
@@ -42,5 +42,5 @@ temp_sec = sec.sample3D(temp)
 print "mean tempeature = ", np.sum(sec.Area * temp_sec) / np.sum(sec.Area)
 
 # TODO: Make a mean method in the Section class
-   Usage: sec.mean(temp_sec)
+#   Usage: sec.mean(temp_sec)
 #   or even directly from 3D: sec.mean(temp)

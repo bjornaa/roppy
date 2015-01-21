@@ -38,7 +38,7 @@ grd = SGrid(fid)
 F = fid.variables[var][tstep, :, :, :]
 long_name = fid.variables[var].long_name
 
-fid.close()
+#fid.close()
 
 # ------------------
 # Handle the data

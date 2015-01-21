@@ -80,7 +80,7 @@ V = f.variables['v'][timeframe, -1, grid.Jv, grid.Iv]
 Mu = f.variables['mask_u'][grid.Ju, grid.Iu]
 Mv = f.variables['mask_v'][grid.Jv, grid.Iv]
 
-f.close()
+#f.close()
 
 # ----------------------
 # Handle the data

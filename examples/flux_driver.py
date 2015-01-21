@@ -48,7 +48,7 @@ outfile = 'flux.dat'
 
 f0 = Dataset(gridfile)
 grd = SGrid(f0)
-f0.close()
+#f0.close()
 
 # Make FluxSection objects
 
