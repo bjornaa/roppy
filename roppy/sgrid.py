@@ -29,6 +29,28 @@ from sample import sample2D, bilin_inv
 # Classes
 # ------------------------------------------------------
 
+# -------------------------------
+
+
+class _Lazy(object):
+    """ Make lazy properties doing work only when and if needed"""
+
+    # Recipe by Scott David Daniels
+    # http://code.activestate.com/recipes/363602-lazy-property-evaluation/
+
+    def __init__(self, calculate_function):
+        self._calculate = calculate_function
+
+    def __get__(self, obj, _=None):
+        if obj is None:
+            return self
+        value = self._calculate(obj)
+        setattr(obj, self._calculate.func_name, value)
+        return value
+
+# ------------------------------
+
+
 class SGrid(object):
 
     """Simple ROMS grid object
@@ -56,99 +78,52 @@ class SGrid(object):
 
     def __init__(self, ncid, subgrid=None, Vinfo=None, Vfile=None):
 
-        # ----------------------------------
-        # Handle the vertical discretization
-        # ----------------------------------
+        self.ncid = ncid
+        self.subgrid = subgrid
+        self._Vinfo = Vinfo
+        self._Vfile = Vfile
 
-        if Vinfo:
-            self.N = Vinfo['N']
-            self.hc = Vinfo['hc']
-            # Trengs ikke utenfor her
-            if Vinfo.has_key('Vstretching'):
-                self.Vstretching = Vinfo['Vstretching']
-            else:
-                self.Vstretching = 1
-            if Vinfo.has_key('Vtransform'):  # Denne trenger self
-                self.Vtransform = Vinfo['Vtransform']
-            else:
-                self.Vtransform = 1
+        self._init_horizontal()
+        self._init_vertical()
 
-            self.Cs_r = s_stretch(self.N, Vinfo['theta_s'], Vinfo['theta_b'],
-                                  stagger='rho', Vstretching=self.Vstretching)
-            self.Cs_w = s_stretch(self.N, Vinfo['theta_s'], Vinfo['theta_b'],
-                                  stagger='w', Vstretching=self.Vstretching)
+    def _init_horizontal(self):
 
-        elif Vfile:  # Read vertical info from separate file
-
-            f0 = Dataset(Vfile)
-
-            self.hc = f0.variables['hc'].getValue()
-            self.Cs_r = f0.variables['Cs_r'][:]
-            self.Cs_w = f0.variables['Cs_w'][:]
-
-            # Vertical grid size
-            self.N = len(self.Cs_r)
-
-            # Vertical transform
-            self.Vtransform = 1  # Default
-            try:   # Look for standard_name attribute of variable s_rho
-                v = f0.variables['s_rho']
-                if v.standard_name[-1] == '2':
-                    self.Vtransform = 2
-            # No variable s_rho or no standard_name attribute
-            except (KeyError, RuntimeError):
-                pass                    # keep old default Vtransform = 1
-
-            f0.close()
-
-        else:  # Read vertical info from the file
-
-            self.hc = ncid.variables['hc'].getValue()
-            self.Cs_r = ncid.variables['Cs_r'][:]
-            self.Cs_w = ncid.variables['Cs_w'][:]
-
-            # Vertical grid size
-            self.N = len(self.Cs_r)
-
-            # Vertical transform
-            self.Vtransform = 1  # Default
-            try:   # Look for standard_name attribute of variable s_rho
-                v = ncid.variables['s_rho']
-                if v.standard_name[-1] == '2':
-                    self.Vtransform = 2
-
-            # No variable s_rho or no standard_name attribute
-            except (KeyError, RuntimeError):
-                pass                    # keep default Vtransform = 1
-
-        # ---------------------
-        # Subgrid specification
-        # ---------------------
-
-        Mp, Lp = ncid.variables['h'].shape
-        if subgrid:
-            i0 = subgrid[0]
-            i1 = subgrid[1]
-            j0 = subgrid[2]
-            j1 = subgrid[3]
-            if i0 < 0: i0 += Lp
-            if i1 < 0: i1 += Lp
-            if j0 < 0: j0 += Mp
-            if j1 < 0: j1 += Mp
-            # should have test 0 <= i0 < i1 = Lp
-            # should have test 0 <= j0 < j1 = Mp
-            #self.Lp = self.i1 - self.i0
-            #elf.Mp = self.j1 - self.j0
+        # (sub-)grid limits
+        # i0 <= i < i1, j0 <= j < j1
+        Mp, Lp = self.ncid.variables['h'].shape
+        if self.subgrid:
+            i0 = self.subgrid[0]
+            i1 = self.subgrid[1]
+            j0 = self.subgrid[2]
+            j1 = self.subgrid[3]
+            # Allow None if no limitation
+            if i0 is None:
+                i0 = 0
+            if i1 is None:
+                i1 = Mp
+            if j0 is None:
+                j0 = 0
+            if j1 is None:
+                j1 = Lp
+            # Allow negative values, relative to right/upper end
+            if i0 < 0:
+                i0 += Lp
+            if i1 <= 0:
+                i1 += Lp
+            if j0 < 0:
+                j0 += Mp
+            if j1 <= 0:
+                j1 += Mp
             self.i0, self.i1 = i0, i1
             self.j0, self.j1 = j0, j1
         else:
             self.i0, self.i1 = 0, Lp
             self.j0, self.j1 = 0, Mp
 
-        # Shape
+        # Shape of the grid
         self.shape = (self.j1-self.j0, self.i1-self.i0)
 
-        # Slices
+        # Slices for rho-points
         self.I = slice(self.i0, self.i1)
         self.J = slice(self.j0, self.j1)
 
@@ -159,89 +134,124 @@ class SGrid(object):
         j1_v = min(self.j1, Mp-1)
         self.i0_u = i0_u
         self.j0_v = j0_v
-
         self.Iu = slice(i0_u, i1_u)
         self.Ju = self.J
         self.Iv = self.I
         self.Jv = slice(j0_v, j1_v)
 
-        # ---------------
-        # Coordinates
-        # ---------------
-
-        # Limits
-        self.xmin = float(self.i0)
-        self.xmax = float(self.i1 - 1)
-        self.ymin = float(self.j0)
-        self.ymax = float(self.j1 - 1)
-
         # Grid cell centers
         self.X = np.arange(self.i0, self.i1)
         self.Y = np.arange(self.j0, self.j1)
-        # U points
-        #self.Xu = np.arange(self.i0_u, self.i1_u)
-        #self.Yu = self.Y
-        # V points
-        #self.Xv = self.X
-        #self.Yv = np.arange(self.j0_v, self.j1_v)
         # Grid cell boundaries = psi-points
         self.Xb = np.arange(self.i0-0.5, self.i1)
         self.Yb = np.arange(self.j0-0.5, self.j1)
 
-        # Read variables from the NetCDF file
-        # ------------------------------------
-        
-        self.h = ncid.variables['h'][self.J, self.I]
-        # mask_rho should not be masked
-        self.mask_rho = np.array(ncid.variables['mask_rho'][self.J, self.I])
+    # ------------------------------------
 
-        try:
-            self.pm = ncid.variables['pm'][self.J, self.I]
-            self.pn = ncid.variables['pn'][self.J, self.I]
-        except KeyError:
-            pass
-        try:
-            self.lon_rho = ncid.variables['lon_rho'][self.J, self.I]
-            self.lat_rho = ncid.variables['lat_rho'][self.J, self.I]
-        except KeyError:
-            pass
-        try:
-            self.angle = ncid.variables['angle'][self.J, self.I]
-            self.f = ncid.variables['f'][self.J, self.I]
-        except KeyError:
-            pass
+    def _init_vertical(self):
+        """Init vertical structure"""
 
-        # ---------------------
-        # 3D depth structure
-        # ---------------------
+        # Vinfo overrides Vfile overrides ncid
+        # if Vinfo:
+        #     use Vinfo
+        # elif Vfile:
+        #     use Vfile
+        # elif ncid has vertical structure
+        #     use ncid
+        # else
+        #     No vertical structure
 
-        self.z_r = sdepth(self.h, self.hc, self.Cs_r,
+        self.vertical = True
+
+        if self._Vinfo:
+            Vinfo = self._Vinfo
+            self.N = Vinfo['N']
+            self.hc = Vinfo['hc']
+            self.Vstretching = Vinfo.get('Vstretching', 1)
+            self.Vtransform = Vinfo.get('Vtransform', 1)
+            self.Cs_r = s_stretch(self.N, Vinfo['theta_s'], Vinfo['theta_b'],
+                                  stagger='rho', Vstretching=self.Vstretching)
+            self.Cs_w = s_stretch(self.N, Vinfo['theta_s'], Vinfo['theta_b'],
+                                  stagger='w', Vstretching=self.Vstretching)
+
+        else:
+
+            if self._Vfile:
+                f0 = Dataset(self._Vfile)  # separate file
+            else:
+                f0 = self.ncid       # use the file itself
+
+            try:
+                self.hc = f0.variables['hc'].getValue()
+            except KeyError:
+                # No vertical information, skip the rest
+                self.vertical = False
+
+            if self.vertical:
+                self.Cs_r = f0.variables['Cs_r'][:]
+                self.Cs_w = f0.variables['Cs_w'][:]
+
+                # Vertical grid size
+                self.N = len(self.Cs_r)
+
+                # Vertical transform
+                self.Vtransform = 1  # Default
+                # Look for standard_name attribute of variable s_rho
+                try:
+                    v = f0.variables['s_rho']
+                    if v.standard_name[-1] == '2':
+                        self.Vtransform = 2
+                # No variable s_rho or no standard_name attribute
+                except (KeyError, RuntimeError):
+                    pass              # keep old default Vtransform = 1
+
+            # Close separate file
+            if self._Vfile:
+                f0.close()
+
+    # --------------
+    # Lazy reading
+    # ---------------
+
+    # Some 2D fields from the file
+    # Only read if (and when) needed
+
+    # Doing the following for a list of fields
+    # @_Lazy
+    # def field(self):
+    #     return self.ncid.variables['field'][self.J, self.I]
+
+    for _field in ['h', 'mask_rho', 'lon_rho', 'lat_rho',
+                   'pm', 'pn', 'angle', 'f']:
+        exec("%s = lambda self: self.ncid.variables['%s'][self.J, self.I]"
+             % (_field, _field))
+        exec("%s = _Lazy(%s)" % (_field, _field))
+
+    # 3D depth structure
+    @_Lazy
+    def z_r(self):
+        if self.vertical:
+            return sdepth(self.h, self.hc, self.Cs_r,
                           stagger='rho', Vtransform=self.Vtransform)
-        self.z_w = sdepth(self.h, self.hc, self.Cs_w,
+
+    @_Lazy
+    def z_w(self):
+        if self.vertical:
+            return sdepth(self.h, self.hc, self.Cs_w,
                           stagger='w', Vtransform=self.Vtransform)
 
-# Wrappers for romsutil functions
-
-    # Unødvendig?
-    def sample2D(self, F, X, Y, mask=True, undef=np.nan):
-        if mask:
-            return sample2D(F, X, Y, mask=self.mask_rho,
-                            undef_value=undef)
-        else:
-            return sample2D(F, X, Y)
-
+    # ---------------------------------
+    # Wrappers for romsutil functions
+    # ---------------------------------
 
     def zslice(self, F, z):
-        return zslice(F, self.z_r, -abs(z))
+        if self.vertical:
+            return zslice(F, self.z_r, -abs(z))
 
     def xy2ll(self, x, y):
-        return sample2D(self.lon_rho, x-self.i0, y-self.j0),    \
-               sample2D(self.lat_rho, x-self.i0, y-self.j0)
+        return (sample2D(self.lon_rho, x-self.i0, y-self.j0),
+                sample2D(self.lat_rho, x-self.i0, y-self.j0))
 
     def ll2xy(self, lon, lat):
         y, x = bilin_inv(lon, lat, self.lon_rho, self.lat_rho)
         return x + self.i0, y + self.j0
-
-
-
-

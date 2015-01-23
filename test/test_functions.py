@@ -276,7 +276,7 @@ class test_curl(unittest.TestCase):
         pm = (1.0/dx) + np.zeros((jmax, imax), dtype=np.float64)
         pn = (1/(dx*dy)) * np.array([[1.0/x, 1.0/(x+1)], [1.0/x, 1.0/(x+1)]])
         C = curl(U, V, pm, pn)
-        print C.shape
+        #print C.shape
         self.assertEqual(C[0,0], 0.0)
        
     def test_vortex(self):

@@ -32,7 +32,7 @@ tstep  = 3              # 4-th time frame
 fid = Dataset(romsfile)
 grd = SGrid(fid)   
 sst = fid.variables['temp'][tstep, -1,  :, :]
-fid.close()
+#fid.close()
 
 # --------------
 # Data handling
