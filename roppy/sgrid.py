@@ -50,6 +50,9 @@ class _Lazy(object):
 
 # ------------------------------
 
+# Todo: Find a way to get a 2D grid object, even if necessary
+# information is in the file
+# f.ex. ..., dimension=3 
 
 class SGrid(object):
 
@@ -255,3 +258,29 @@ class SGrid(object):
     def ll2xy(self, lon, lat):
         y, x = bilin_inv(lon, lat, self.lon_rho, self.lat_rho)
         return x + self.i0, y + self.j0
+
+# ---- End of SGrid class ----
+
+# Define a SubGrid class.
+# grid2 = SubGrid(grid, subgrid=(None, None, None, None))
+# same Vinfo,
+# subgrid limits correspond are given in main grid coordinates
+#
+# want:
+# if asked for a field, and it is not present 
+# second take a view from mother grid, if available.
+# third download from file
+
+# Er det verdt bryderiet
+
+class SubGrid(SGrid):
+    """Take a subgrid of existing mother grid"""
+
+    def __init__(self, mother, subgrid=(None, None, None, None)):
+
+        self.ncid = mother.ncid
+        self.subgrid = subgrid
+
+        i0 = 
+        
+
