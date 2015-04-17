@@ -71,14 +71,14 @@ class test_kinetic_energy(unittest.TestCase):
         V = np.array([[vel(0.0, -0.5, theta)[1],
                        vel(0.0,  0.5, theta)[1]]]).T
         KE = kinetic_energy(U, V)
-        print "KE = ", KE
+
         theta = 0.2
         U = np.array([[vel(-0.5, 0.0, theta)[0],
                        vel( 0.5, 0.0, theta)[0]]])
         V = np.array([[vel(0.0, -0.5, theta)[1],
                        vel(0.0,  0.5, theta)[1]]]).T
         KE = kinetic_energy(U, V)
-        #print "KE = ", KE
+
 
         
                  

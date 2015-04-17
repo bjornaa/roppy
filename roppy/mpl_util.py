@@ -25,6 +25,9 @@ Function overview
 # 2010-01-05
 # -----------------------------------
 
+from __future__ import (print_function, division,
+                        absolute_import, unicode_literals)
+
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt

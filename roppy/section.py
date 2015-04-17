@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import (print_function, division,
+                        absolute_import, unicode_literals)
 import numpy as np
-from sample import sample2D, sample2DU, sample2DV
-from depth import sdepth
-
-
-
+from roppy.sample import sample2D, sample2DU, sample2DV
+from roppy.depth import sdepth
 
 class Section(object):
     """Class for handling sections in a ROMS grid
@@ -117,7 +116,7 @@ def linear_section(i0, i1, j0, j1, grd):
         elif i0 > i1:
             X = np.arange(i0, i1-1, -1)
         else:  # i0 = i1 and j0 = j1
-            raise ValueError, "Section reduced to a point"
+            raise ValueError( "Section reduced to a point")
         slope = float(j1-j0) / (i1-i0)
         Y = j0 + slope*(X-i0)
 

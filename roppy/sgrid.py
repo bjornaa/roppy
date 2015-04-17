@@ -19,11 +19,15 @@ Classes
 # -----------------------------------
 
 
+from __future__ import (print_function, division,
+                        absolute_import, unicode_literals)
 import numpy as np
 from netCDF4 import Dataset
 
-from depth import sdepth, zslice, s_stretch
-from sample import sample2D, bilin_inv
+from roppy.depth import sdepth, zslice, s_stretch
+from roppy.sample import sample2D, bilin_inv
+#from depth import sdepth, zslice, s_stretch
+#from sample import sample2D, bilin_inv
 
 # ------------------------------------------------------
 # Classes
@@ -45,7 +49,7 @@ class _Lazy(object):
         if obj is None:
             return self
         value = self._calculate(obj)
-        setattr(obj, self._calculate.func_name, value)
+        setattr(obj, self._calculate.__name__, value)
         return value
 
 # ------------------------------

@@ -9,14 +9,17 @@
 # Institute of Marine Research
 # ----------------------------------
 
-from depth import *
-from sample import *
-from levels import nice, nice_levels
-from sgrid import SGrid
+from __future__ import (print_function, division,
+                        absolute_import, unicode_literals)
 
-from section import *
-from fluxsec import *
+from roppy.depth import *
+from roppy.sample import *
+from roppy.levels import nice, nice_levels
+from roppy.sgrid import SGrid
 
-import section2
+from roppy.section import *
+from roppy.fluxsec import *
+
+from roppy import section2
 
 

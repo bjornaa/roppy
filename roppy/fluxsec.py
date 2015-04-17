@@ -2,9 +2,11 @@
 
 # Section class for flux calculations
 
+from __future__ import (print_function, division,
+                        absolute_import, unicode_literals)
 import numpy as np
 
-from depth import sdepth
+from roppy.depth import sdepth
 #from sample import sample2D
 
 

@@ -3,6 +3,8 @@
 """Generator for moving averages from ROMS file(s)"""
 
 
+from __future__ import (print_function, division,
+                        absolute_import, unicode_literals)
 import numpy as np
 
 

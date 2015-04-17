@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import (print_function, division,
+                        absolute_import, unicode_literals)
+
 import numpy as np
-from sample import sample2D, sample2DU, sample2DV
-from depth import sdepth
+from roppy.sample import sample2D, sample2DU, sample2DV
+from roppy.depth import sdepth
 #from romsutil import *
 
 class Section(object):

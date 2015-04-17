@@ -21,6 +21,9 @@ Horizontal sampling
 # 2010-09-30
 # -----------------------------------
 
+from __future__ import (print_function, division,
+                        absolute_import, unicode_literals)
+
 import datetime
 import numpy as np
 
@@ -157,10 +160,10 @@ def sample2D(F, X, Y, mask=None, undef_value=0.0, outside_value=None):
     scalar = np.isscalar(Z)
  
     if np.ndim(F) != 2:
-        raise ValueError, "F must be 2D"
+        raise ValueError("F must be 2D")
     if mask is not None:
         if mask.shape != F.shape:
-            raise ValueError, "Must have mask.shape == F.shape"
+            raise ValueError("Must have mask.shape == F.shape")
     
     jmax, imax = F.shape
     
@@ -178,7 +181,7 @@ def sample2D(F, X, Y, mask=None, undef_value=0.0, outside_value=None):
     outside = (X0 < 0) | (X0 >= imax-1) | (Y0 < 0) | (Y0 >= jmax-1)
     if np.any(outside):
         if outside_value == None:
-            raise ValueError, "point outside grid"
+            raise ValueError("point outside grid")
         I = np.where(outside, 0, I)
         J = np.where(outside, 0, J)
         #try:
@@ -232,14 +235,13 @@ def bilin_inv(f, g, F, G, maxiter=7, tol=1.0e-7):
 
     imax, jmax = F.shape
     if G.shape != (imax, jmax):
-        raise ValueError, "Shape mismatch in 2D arrays"
+        raise ValueError("Shape mismatch in 2D arrays")
     
     scalar = np.isscalar(f)
 
     if scalar:
         if not np.isscalar(g):
-            raise ValueError,    \
-                  "Target values must both be scalars or both arrays"
+            raise ValueError("Target values must both be scalars or both arrays")
         # initial guess
         x = 0.5*imax
         y = 0.5*jmax
@@ -249,8 +251,7 @@ def bilin_inv(f, g, F, G, maxiter=7, tol=1.0e-7):
         g = np.asarray(g)
         fshape = f.shape
         if g.shape != fshape:
-            raise ValueError,    \
-                  "Target arrays must have the same shape"
+            raise ValueError( "Target arrays must have the same shape")
         # Make 1D
         #f = f.ravel()
         #g = g.ravel()

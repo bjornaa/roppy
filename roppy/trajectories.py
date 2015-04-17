@@ -15,6 +15,9 @@
 # Imports
 # -------------
 
+from __future__ import (print_function, division,
+                        absolute_import, unicode_literals)
+
 import numpy as np
 import roppy
 
@@ -51,7 +54,7 @@ def movepart(grid, U, V, X0, Y0, dt, nstep, order=4):
 
     # Euler-forward
     if order == 1:
-        for t in xrange(nstep-1):
+        for t in range(nstep-1):
             pm = roppy.sample2D(grid.pm, X[t, :]-i0, Y[t, :]-j0,
                                 outside_value=0)
             pn = roppy.sample2D(grid.pn, X[t, :]-i0, Y[t, :]-j0,
@@ -65,7 +68,7 @@ def movepart(grid, U, V, X0, Y0, dt, nstep, order=4):
 
     # Runge-Kutta 4th order
     elif order == 4:
-        for t in xrange(nstep-1):
+        for t in range(nstep-1):
             pm = roppy.sample2D(grid.pm, X[t, :]-i0, Y[t, :]-j0,
                                 outside_value=0)
             pn = roppy.sample2D(grid.pn, X[t, :]-i0, Y[t, :]-j0,
