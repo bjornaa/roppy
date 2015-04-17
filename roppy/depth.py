@@ -2,7 +2,6 @@
 
 """Vertical structure functions for ROMS
 
-
 :func:`sdepth`
   Depth of s-levels
 :func:`zslice`
@@ -23,8 +22,8 @@
 # 2010-09-30
 # -----------------------------------
 
-from __future__ import (print_function, division,
-                        absolute_import, unicode_literals)
+from __future__ import (absolute_import, division)
+
 import numpy as np
 
 
@@ -69,7 +68,7 @@ def sdepth(H, Hc, C, stagger="rho", Vtransform=1):
     elif stagger == 'w':
         S = np.linspace(-1.0, 0.0, N)
     else:
-        raise ValueError( "stagger must be 'rho' or 'w'")
+        raise ValueError("stagger must be 'rho' or 'w'")
 
     if Vtransform == 1:         # Default transform by Song and Haidvogel
         A = Hc * (S - C)[:,None]
@@ -82,9 +81,10 @@ def sdepth(H, Hc, C, stagger="rho", Vtransform=1):
         return (N/D).reshape(outshape)
 
     else:
-        raise ValueError( "Unknown Vtransform")
+        raise ValueError("Unknown Vtransform")
 
 # ------------------------------------
+
 
 def sdepth_w(H, Hc, cs_w):
     """Return depth of w-points in s-levels
@@ -98,6 +98,7 @@ def sdepth_w(H, Hc, cs_w):
 # ------------------------------------------
 # Vertical slicing e.t.c.
 # ------------------------------------------
+
 
 def zslice(F, S, z):
     """Vertical slice of a 3D ROMS field
@@ -134,7 +135,7 @@ def zslice(F, S, z):
     z = np.asarray(z, dtype='float')
     Fshape = F.shape  # Save original shape
     if S.shape != Fshape:
-        raise ValueError( "F and z_r must have same shape")
+        raise ValueError("F and z_r must have same shape")
     if z.shape and z.shape != Fshape[1:]:
         raise ValueError("z must be scalar or have shape = F.shape[1:]")
 
@@ -152,7 +153,7 @@ def zslice(F, S, z):
     # but the following is much faster
     C = np.sum(S < z, axis=0)
     C = C.clip(1, N-1)
-    
+
     # For vectorisation
     # construct index array tuples D and Dm such that
     #   F[D][i]  = F[C[i], i]
@@ -175,6 +176,7 @@ def zslice(F, S, z):
 
 # -----------------------------------------------
 
+
 def multi_zslice(F, S, Z):
 
     """Slice a 3D ROMS field to fixed depth
@@ -196,7 +198,6 @@ def multi_zslice(F, S, Z):
     # TODO:
     # Option to Save A, D, Dm
     #   => faster interpolate more fields to same depth
-
 
     F = np.asarray(F)
     S = np.asarray(S)
@@ -249,12 +250,12 @@ def multi_zslice(F, S, Z):
 
 # ------------------------------------------------------
 
+
 def z_average(F, z_r, z0, z1):
     """Slice a 3D ROMS field to fixed depth
 
     Vertical interpolation of a field in s-coordinates to
     fixed vertical level
-
 
     *F* : array
       Vertical profiles, first dimension is vertical
@@ -286,7 +287,6 @@ def z_average(F, z_r, z0, z1):
     if z1.shape:
         z1 = z1.reshape((M,))
 
-
     # Bracket z0, i.e.
     # Find integer array C0 with shape (M,)
     # with z_r[C0[i]-1, i] < z0 <= z_r[C0[i], i]
@@ -309,19 +309,18 @@ def z_average(F, z_r, z0, z1):
     F0 = (1-A0)*F[(C0-1,I)]+A0*F[(C0,I)]
     A1 = (z1 - z_r[(C1-1,I)])/(z_r[(C1,I)]-z_r[(C1-1,I)])
     A1 = A1.clip(0.0, 1.0)
-    F1 = (1-A1)*F[(C1-1,I)]+A1*F[(C1,I)]
-
+    F1 = (1-A1)*F[(C1-1,I)] + A1*F[(C1,I)]
 
     # Find indices again (unclipped)
     C0 = np.sum(z_r < z0, axis=0)
     C1 = np.sum(z_r < z1, axis=0)
 
-
     R = np.zeros(M, dtype=np.float64)
     X = np.zeros(N+2, dtype=np.float64)
     Y = np.zeros(N+2, dtype=np.float64)
-    z0 = z0 + R; z1 = z1 + R  # Make sure they are spatial arrays
-                              # For indexing below
+    z0 = z0 + R    # Make sure they are spatial arrays
+    z1 = z1 + R    # For indexing below
+
     for i in I:
         X[:] = 0.0
         Y[:] = 0.0
@@ -344,6 +343,7 @@ def z_average(F, z_r, z0, z1):
 
 # ----------------------------------
 
+
 def s_stretch(N, theta_s, theta_b, stagger='rho', Vstretching=1):
     """Compute a s-level stretching array
 
@@ -364,18 +364,18 @@ def s_stretch(N, theta_s, theta_b, stagger='rho', Vstretching=1):
     elif stagger == "w":
         S = np.linspace(-1.0, 0.0, N+1)
     else:
-        raise ValueError( "stagger must be 'rho' or 'w'")
+        raise ValueError("stagger must be 'rho' or 'w'")
 
     if Vstretching == 1:
-        cff1=1.0/np.sinh(theta_s);
-        cff2=0.5/np.tanh(0.5*theta_s);
-        return    (1.0-theta_b)*cff1*np.sinh(theta_s*S)   \
-                +  theta_b*(cff2*np.tanh(theta_s*(S+0.5))-0.5)
+        cff1=1.0 / np.sinh(theta_s)
+        cff2=0.5 / np.tanh(0.5*theta_s)
+        return ((1.0-theta_b)*cff1*np.sinh(theta_s*S)
+                + theta_b*(cff2*np.tanh(theta_s*(S+0.5))-0.5))
 
     elif Vstretching == 2:
         a, b = 1.0, 1.0
         Csur = (1 - np.cosh(theta_s * S))/(np.cosh(theta_s) - 1)
-        Cbot = np.sinh(theta_b*(S+1))/np.sinh(theta_b) -1
+        Cbot = np.sinh(theta_b * (S+1)) / np.sinh(theta_b) -1
         mu = (S+1)**a * (1 + (a/b)*(1-(S+1)**b))
         return mu*Csur + (1-mu)*Cbot
 

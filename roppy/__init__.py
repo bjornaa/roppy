@@ -9,8 +9,7 @@
 # Institute of Marine Research
 # ----------------------------------
 
-from __future__ import (print_function, division,
-                        absolute_import, unicode_literals)
+from __future__ import (absolute_import)
 
 from roppy.depth import *
 from roppy.sample import *

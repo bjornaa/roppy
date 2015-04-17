@@ -18,16 +18,11 @@ Classes
 # 2010-09-30
 # -----------------------------------
 
-
-from __future__ import (print_function, division,
-                        absolute_import, unicode_literals)
 import numpy as np
 from netCDF4 import Dataset
 
 from roppy.depth import sdepth, zslice, s_stretch
 from roppy.sample import sample2D, bilin_inv
-#from depth import sdepth, zslice, s_stretch
-#from sample import sample2D, bilin_inv
 
 # ------------------------------------------------------
 # Classes

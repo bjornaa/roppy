@@ -2,12 +2,10 @@
 
 # Section class for flux calculations
 
-from __future__ import (print_function, division,
-                        absolute_import, unicode_literals)
+from __future__ import division, absolute_import
 import numpy as np
 
 from roppy.depth import sdepth
-#from sample import sample2D
 
 
 class FluxSection(object):
@@ -32,7 +30,7 @@ class FluxSection(object):
     def __init__(self, grid, I, J):
 
         self.grid = grid
-        self.I = np.asarray(I) 
+        self.I = np.asarray(I)
         self.J = np.asarray(J)
         # Grid coordinates of (mid points of) edges
         self.X = 0.5*(self.I[:-1]+self.I[1:]) - 0.5
@@ -80,10 +78,8 @@ class FluxSection(object):
         self.dZ = self.z_w[1:, :]-self.z_w[:-1, :]
         self.dSdZ = self.dS * self.dZ
 
-
     def __len__(self):
         return self.L
-
 
     def flux_array(self, U, V):
         """Returns a 2D field of fluxes through the section"""
@@ -109,7 +105,7 @@ class FluxSection(object):
         # A subgrid has velocity components at the boundaries
         # giving an extra velocity offset
         ioff, joff = 0, 0
-        if self.grid.i0 > 0:  
+        if self.grid.i0 > 0:
             ioff = 1
         if self.grid.j0 > 0:
             joff = 1
@@ -118,7 +114,7 @@ class FluxSection(object):
         IV = self.I[self.Ev] - (1+dirV)//2 - self.grid.i0
         JU = self.J[self.Eu] - (1-dirU)//2 - self.grid.j0
         JV = self.J[self.Ev] - 1 - self.grid.j0 + joff
-        
+
         UVsec = np.empty((self.N, self.L))
         UVsec[:, self.Eu] = dirU * U[:, JU, IU]
         UVsec[:, self.Ev] = dirV * V[:, JV, IV]
@@ -142,8 +138,7 @@ class FluxSection(object):
         """Sample a horizontal field (rho-points) to the section edges"""
 
         # Could simplify since average og two neighbouring rho-cells
-
-        #return sample2D(F, self.X, self.Y)
+        # return sample2D(F, self.X, self.Y)
 
         dirU = self.dir[self.Eu]
         dirV = self.dir[self.Ev]
@@ -158,9 +153,7 @@ class FluxSection(object):
         Fsec = np.empty((self.L,), F.dtype)
         Fsec[self.Eu] = 0.5*(F[JU, IU] + F[JU, IU-1])
         Fsec[self.Ev] = 0.5*(F[JV, IV] + F[JV-1, IV])
-        
-        #Fsec[self.Eu] = FU
-        #Fsec[self.Ev] = FV
+
         return Fsec
 
 # ---------------------------------
@@ -181,7 +174,7 @@ class FluxSection(object):
 def staircase_from_line(i0, i1, j0, j1):
 
     swapXY = False
-    if abs(i1-i0) < abs(j0-j1): # Mostly vertical
+    if abs(i1-i0) < abs(j0-j1):  # Mostly vertical
         i0, i1, j0, j1 = j0, j1, i0, i1
         swapXY = True
 

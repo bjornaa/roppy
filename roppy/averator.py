@@ -2,11 +2,7 @@
 
 """Generator for moving averages from ROMS file(s)"""
 
-
-from __future__ import (print_function, division,
-                        absolute_import, unicode_literals)
 import numpy as np
-
 
 
 def roms_averator(ncid, var_name, L, grd):
@@ -31,7 +27,7 @@ def roms_averator(ncid, var_name, L, grd):
 
     N = L // 2
     assert 2*N == L, "Only even averaging periods allowed (presently)"
-    
+
     # Dimension and staggering
     if var_name == 'u':             # 3D u-point
         I, J = grd.Iu, grd.Ju
@@ -44,7 +40,7 @@ def roms_averator(ncid, var_name, L, grd):
     else:                           # default = 3D rho-point
         I, J = grd.I, grd.J
         s = (slice(None), grd.J, grd.I)
-        
+
     # First average
     MF = fid.variables[var_name][(0,) + s]/(4*N)
     for t in range(1, 2*N):

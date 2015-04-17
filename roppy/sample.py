@@ -21,26 +21,26 @@ Horizontal sampling
 # 2010-09-30
 # -----------------------------------
 
-from __future__ import (print_function, division,
-                        absolute_import, unicode_literals)
+from __future__ import division
 
 import datetime
 import numpy as np
 
 # ---------------------
 
+
 def sample2D2(F, X, Y):
     """Bilinear sample of a 2D field
 
     *F* : 2D array
-    
+
     *X*, *Y* : position in grid coordinates, scalars or compatible arrays
 
     Note reversed axes, for integers i and j we have
       ``sample2D(F, i, j) = F[j,i]``
 
     Using bilinear interpolation
-    
+
     """
 
     Z = np.add(X,Y)     # Test for compatibility
@@ -66,16 +66,19 @@ def sample2D2(F, X, Y):
     return W00*F[J,I] + W01*F[J+1,I] + W10*F[J,I+1] + W11*F[J+1,I+1]
 
 # --------------------------------------------------
-    
+
+
 def sample2DU(F, X, Y):
     return sample2D(F, X-0.5, Y)
 
 # --------------------------------------------------
 
+
 def sample2DV(F, X, Y):
     return sample2D(F, X, Y-0.5)
 
 # -------------------------------------------------
+
 
 def sample2D_masked(F, M, X, Y):
     """Bilinar sample of a 2D field
@@ -87,7 +90,7 @@ def sample2D_masked(F, M, X, Y):
     sample2D(F, i, j) = F[j,i]
 
     Using linear interpolation
-    
+
     """
 
     masked = True
@@ -118,19 +121,19 @@ def sample2D_masked(F, M, X, Y):
         W11 = M[J+1,I+1] * W11
     SW = W00 + W01 + W10 + W11
     F_interp = np.where(SW > 0,
-            (W00*F[J,I] + W01*F[J+1,I] + W10*F[J,I+1] + W11*F[J+1,I+1])/SW, 
+            (W00*F[J,I] + W01*F[J+1,I] + W10*F[J,I+1] + W11*F[J+1,I+1])/SW,
              0.0)
-    #F_interp = np.ma.masked_where(SW == 0, F_interp)
 
     return F_interp
 
 # ------------------
 
+
 def sample2D(F, X, Y, mask=None, undef_value=0.0, outside_value=None):
     """Bilinear sample of a 2D field
 
     *F* : 2D array, shape = (jmax, imax)
-    
+
     *X*, *Y* : position in grid coordinates, scalars or compatible arrays
 
     *mask* : if present must be a 2D matrix with 1 at valid
@@ -147,26 +150,26 @@ def sample2D(F, X, Y, mask=None, undef_value=0.0, outside_value=None):
 
     If jmax, imax = F.shape
     then inside values requires 0 <= x < imax-1, 0 <= y < jmax-1
-    
+
     Using bilinear interpolation
-    
+
     """
 
     # --- Argument checking ---
 
     # X and Y should be broadcastable to the same shape
-    Z = np.add(X,Y)  
+    Z = np.add(X,Y)
     # scalar is True if both X and Y are scalars
     scalar = np.isscalar(Z)
- 
+
     if np.ndim(F) != 2:
         raise ValueError("F must be 2D")
     if mask is not None:
         if mask.shape != F.shape:
             raise ValueError("Must have mask.shape == F.shape")
-    
+
     jmax, imax = F.shape
-    
+
     # Broadcast X and Y
     X0 = X + np.zeros_like(Z)
     Y0 = Y + np.zeros_like(Z)
@@ -180,17 +183,17 @@ def sample2D(F, X, Y, mask=None, undef_value=0.0, outside_value=None):
 
     outside = (X0 < 0) | (X0 >= imax-1) | (Y0 < 0) | (Y0 >= jmax-1)
     if np.any(outside):
-        if outside_value == None:
+        if outside_value is None:
             raise ValueError("point outside grid")
         I = np.where(outside, 0, I)
         J = np.where(outside, 0, J)
-        #try:
+        # try:
         #    J[outside] = 0
         #    I[outside] = 0
-        #except TypeError:    # Zero-dimensional
+        # except TypeError:    # Zero-dimensional
         #    I = np.array(0)
         #    J = np.array(0)
-            
+
     # Weights for bilinear interpolation
     W00 = (1-P)*(1-Q)
     W01 = (1-P)*Q
@@ -221,6 +224,7 @@ def sample2D(F, X, Y, mask=None, undef_value=0.0, outside_value=None):
 
 # -----------------------------------------
 
+
 def bilin_inv(f, g, F, G, maxiter=7, tol=1.0e-7):
     """Inverse bilinear interpolation
 
@@ -236,17 +240,18 @@ def bilin_inv(f, g, F, G, maxiter=7, tol=1.0e-7):
     imax, jmax = F.shape
     if G.shape != (imax, jmax):
         raise ValueError("Shape mismatch in 2D arrays")
-    
+
     scalar = np.isscalar(f)
 
     if scalar:
         if not np.isscalar(g):
-            raise ValueError("Target values must both be scalars or both arrays")
+            raise ValueError(
+                "Target values must both be scalars or both arrays")
         # initial guess
         x = 0.5*imax
         y = 0.5*jmax
 
-    else: # vector target
+    else:  # vector target
         f = np.asarray(f)
         g = np.asarray(g)
         fshape = f.shape
@@ -268,7 +273,7 @@ def bilin_inv(f, g, F, G, maxiter=7, tol=1.0e-7):
         else:
             i = x.astype('i')
             j = y.astype('i')
-            
+
         p, q = x - i, y - j
 
         # Bilinear estimate of F[x,y] and G[x,y]
@@ -278,7 +283,7 @@ def bilin_inv(f, g, F, G, maxiter=7, tol=1.0e-7):
              (1-p)*q*G[i,j+1] + p*q*G[i+1,j+1]
 
         H = (Fs - f)**2 + (Gs - g)**2
-        #print t, H
+
         if np.all(H < tol):
             break
 
@@ -297,4 +302,3 @@ def bilin_inv(f, g, F, G, maxiter=7, tol=1.0e-7):
         y = y - (-Gx*(Fs-f) + Fx*(Gs-g)) / det
 
     return x, y
-

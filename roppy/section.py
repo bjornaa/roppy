@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import (print_function, division,
-                        absolute_import, unicode_literals)
+from __future__ import absolute_import
+
 import numpy as np
 from roppy.sample import sample2D, sample2DU, sample2DV
 from roppy.depth import sdepth
+
 
 class Section(object):
     """Class for handling sections in a ROMS grid
@@ -26,8 +27,8 @@ class Section(object):
 
         self.grid = grid
         # Vertices, in subgrid coordinates
-        self.X = X 
-        self.Y = Y 
+        self.X = X
+        self.Y = Y
 
         # Section size
         self.L = len(self.X)         # Number of nodes
@@ -48,11 +49,12 @@ class Section(object):
         self.S = np.concatenate(([0], np.add.accumulate(self.dS)))
         # Weights for trapez integration (linear interpolation)
         self.W = 0.5*np.concatenate(([self.dS[0]],
-                                     self.dS[:-1] + self.dS[1:], [self.dS[-1]]))
+                                     self.dS[:-1] + self.dS[1:],
+                                     [self.dS[-1]]))
 
-        #nx, ny  = dY, -dX
-        #norm = np.sqrt(nx*nx + ny*ny)
-        #self.nx, self.ny = nx/norm, ny/norm
+        # nx, ny  = dY, -dX
+        # norm = np.sqrt(nx*nx + ny*ny)
+        # self.nx, self.ny = nx/norm, ny/norm
 
         # Vertical structure
         self.z_r = sdepth(self.h, self.grid.hc, self.grid.Cs_r,
@@ -110,18 +112,18 @@ def linear_section(i0, i1, j0, j1, grd):
     Returns a section object
     """
 
-    if abs(i1-i0) >= abs(j0-j1): # Work horizontally
+    if abs(i1-i0) >= abs(j0-j1):  # Work horizontally
         if i0 < i1:
             X = np.arange(i0, i1+1)
         elif i0 > i1:
             X = np.arange(i0, i1-1, -1)
         else:  # i0 = i1 and j0 = j1
-            raise ValueError( "Section reduced to a point")
+            raise ValueError("Section reduced to a point")
         slope = float(j1-j0) / (i1-i0)
         Y = j0 + slope*(X-i0)
 
     else:   # Work vertically
-        if j0 < j1:  
+        if j0 < j1:
             Y = np.arange(j0, j1+1)
         else:
             Y = np.arange(j0, j1-1, -1)

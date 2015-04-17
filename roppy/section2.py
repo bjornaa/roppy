@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import (print_function, division,
-                        absolute_import, unicode_literals)
+from __future__ import absolute_import
 
 import numpy as np
 from roppy.sample import sample2D, sample2DU, sample2DV
 from roppy.depth import sdepth
-#from romsutil import *
+
 
 class Section(object):
     """Class for handling sections in a ROMS grid
 
     The grid is defined by a grid object having attributes
-    
-       h, pm, pn, hc, Cs_r, Cs_w, Vtransform 
+
+       h, pm, pn, hc, Cs_r, Cs_w, Vtransform
 
     with the ROMS variables of the same netCDF names
 
@@ -39,7 +38,7 @@ class Section(object):
         # Compatible with both SGrid and grdClass
         try:
             self.h = sample2D(self.grid.h, self.Xm, self.Ym,
-                          mask=self.grid.mask_rho, undef_value=0.0)
+                              mask=self.grid.mask_rho, undef_value=0.0)
         except AttributeError:
             self.h = sample2D(self.grid.depth, self.Xm, self.Ym)
 
@@ -59,7 +58,7 @@ class Section(object):
 
         nx, ny  = dY, -dX
         norm = np.sqrt(nx*nx + ny*ny)
-        self.nx, self.ny = nx/norm, ny/norm    
+        self.nx, self.ny = nx/norm, ny/norm
 
         # Vertical structure
         self.z_r = sdepth(self.h, self.grid.hc, self.grid.Cs_r,
@@ -67,7 +66,7 @@ class Section(object):
         self.z_w = sdepth(self.h, self.grid.hc, self.grid.Cs_w,
                           stagger='w', Vtransform=self.grid.Vtransform)
         self.dZ = self.z_w[1:,:]-self.z_w[:-1,:]
-        
+
         self.Area = self.dZ * self.dS
 
     def sample2D(self, F):
@@ -104,12 +103,10 @@ class Section(object):
     def extend_vertically(self, F):
         """extends a 1D array to all s-levels"""
         return np.outer(np.ones(self.N), F)
-        #return np.meshgrid(F, np.ones(self.N))[0]  # slower alternative
-    
+
     def Flux(self, U, V):
         """Returns 2D volume flux array"""
         return self.Area * self.normal_current(U, V) * 1.0e-6
-        
 
     def flux(self, U, V, mask=None):
         """Compute net volume flux across the section
@@ -123,11 +120,11 @@ class Section(object):
         """
 
         Flux = self.Area * self.normal_current(U, V)
-        if mask != None:
+        if mask is not None:
             Flux = Flux[mask]
         return np.sum(Flux) * 1.0e-6  # Convert to Sverdrup
 
-    # Room for improvement, cache the normal_current?    
+    # Room for improvement, cache the normal_current?
     def flux_r(self, U, V, mask=None):
         """Compute volume flux across the section towards right
 
@@ -139,17 +136,6 @@ class Section(object):
         """
 
         Flux = self.Area * self.normal_current(U, V)
-        if mask != None:
+        if mask is not None:
             Flux = Flux[mask]
         return np.sum(Flux[Flux>0]) * 1.0e-6  # Convert to Sverdrup
-    
-
-    
-
-
-
-
-
-        
-
-
