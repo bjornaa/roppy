@@ -28,7 +28,7 @@ x1, y1 = grd.ll2xy(lon1, lat1)
 i0, j0, i1, j1 = [int(round(v)) for v in x0, y0, x1, y1]
 
 # Make a Section object
-sec = roppy.linear_section(i0, j0, i1, j1, grd)
+sec = roppy.linear_section(i0, i1, j0, j1, grd)
 
 # Read in a 3D temperature field
 temp = f.variables['temp'][0,:,:,:]
