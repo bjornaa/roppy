@@ -41,7 +41,7 @@ class FluxSection(object):
         self.N = len(self.grid.Cs_r)
 
         # Logical indexing for U, V edges
-        E = np.arange(self.L, dtype=int)       # Edge indices
+        # E = np.arange(self.L, dtype=int)       # Edge indices
         self.Eu = (self.I[:-1] == self.I[1:])  # True for U edges
         self.Ev = (self.J[:-1] == self.J[1:])  # True for V edges
 
@@ -52,7 +52,7 @@ class FluxSection(object):
         # V-edge: pointing right, positive flux down, dir = -1
         #         pointing left, positive flux up,    dir = +1
         dir = np.zeros((self.L,), dtype=int)
-        dir[self.Eu] =   self.J[1:][self.Eu] - self.J[:-1][self.Eu]
+        dir[self.Eu] = self.J[1:][self.Eu] - self.J[:-1][self.Eu]
         dir[self.Ev] = - self.I[1:][self.Ev] + self.I[:-1][self.Ev]
         self.dir = dir
 
@@ -165,7 +165,7 @@ class FluxSection(object):
 
         Fsec = np.zeros((self.N, self.L))
         for k in range(self.grid.N):
-            Fsec[k,:] = self.sample2D(F[k,:,:])
+            Fsec[k, :] = self.sample2D(F[k, :, :])
         return Fsec
 
 # -------------------------------------------

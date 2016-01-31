@@ -56,7 +56,7 @@ class Section(object):
         # Cumulative distance (at vertices)s
         self.S = np.concatenate(([0], np.add.accumulate(self.dS)))
 
-        nx, ny  = dY, -dX
+        nx, ny = dY, -dX
         norm = np.sqrt(nx*nx + ny*ny)
         self.nx, self.ny = nx/norm, ny/norm
 
@@ -65,7 +65,7 @@ class Section(object):
                           stagger='rho', Vtransform=self.grid.Vtransform)
         self.z_w = sdepth(self.h, self.grid.hc, self.grid.Cs_w,
                           stagger='w', Vtransform=self.grid.Vtransform)
-        self.dZ = self.z_w[1:,:]-self.z_w[:-1,:]
+        self.dZ = self.z_w[1:, :]-self.z_w[:-1, :]
 
         self.Area = self.dZ * self.dS
 
@@ -80,8 +80,8 @@ class Section(object):
 
         Fsec = np.zeros((self.grid.N, self.nseg))
         for k in range(self.grid.N):
-            Fsec[k,:] = sample2D(F[k,:,:], self.Xm, self.Ym,
-                                 mask=self.grid.mask_rho)
+            Fsec[k, :] = sample2D(F[k, :, :], self.Xm, self.Ym,
+                                  mask=self.grid.mask_rho)
         Fsec = np.ma.masked_where(self.extend_vertically(self.h) == 0, Fsec)
         return Fsec
 
@@ -96,8 +96,8 @@ class Section(object):
         Usec = np.zeros((self.N, self.nseg))
         Vsec = np.zeros((self.N, self.nseg))
         for k in range(self.N):
-            Usec[k,:] = sample2D(U[k,:,:], self.Xm+deltaU, self.Ym)
-            Vsec[k,:] = sample2D(V[k,:,:], self.Xm, self.Ym+deltaV)
+            Usec[k, :] = sample2D(U[k, :, :], self.Xm+deltaU, self.Ym)
+            Vsec[k, :] = sample2D(V[k, :, :], self.Xm, self.Ym+deltaV)
         return self.nx*Usec + self.ny*Vsec
 
     def extend_vertically(self, F):
@@ -138,4 +138,4 @@ class Section(object):
         Flux = self.Area * self.normal_current(U, V)
         if mask is not None:
             Flux = Flux[mask]
-        return np.sum(Flux[Flux>0]) * 1.0e-6  # Convert to Sverdrup
+        return np.sum(Flux[Flux > 0]) * 1.0e-6  # Convert to Sverdrup

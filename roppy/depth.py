@@ -51,7 +51,7 @@ def sdepth(H, Hc, C, stagger="rho", Vtransform=1):
     Typical usage::
 
     >>> fid = Dataset(roms_file)
-    >>> H = fid.variables['h'][:,:]
+    >>> H = fid.variables['h'][:, :]
     >>> C = fid.variables['Cs_r'][:]
     >>> Hc = fid.variables['hc'].getValue()
     >>> z_rho = sdepth(H, Hc, C)
@@ -71,12 +71,12 @@ def sdepth(H, Hc, C, stagger="rho", Vtransform=1):
         raise ValueError("stagger must be 'rho' or 'w'")
 
     if Vtransform == 1:         # Default transform by Song and Haidvogel
-        A = Hc * (S - C)[:,None]
+        A = Hc * (S - C)[:, None]
         B = np.outer(C, H)
         return (A + B).reshape(outshape)
 
     elif Vtransform == 2:       # New transform by Shchepetkin
-        N = Hc*S[:,None] + np.outer(C, H)
+        N = Hc*S[:, None] + np.outer(C, H)
         D = (1.0 + Hc/H)
         return (N/D).reshape(outshape)
 
@@ -159,7 +159,7 @@ def zslice(F, S, z):
     #   F[D][i]  = F[C[i], i]
     #   F[Dm][i] = F[C[i]-1, i]
     I = np.arange(M, dtype='int')
-    D  = (C, I)
+    D = (C, I)
     Dm = (C-1, I)
 
     # Compute interpolation weights
@@ -217,11 +217,11 @@ def multi_zslice(F, S, Z):
     # 3) Z = 2D or more, reshapeable to (kmax, M)
 
     if Z.ndim == 0:
-        Z = Z + np.zeros((1,M))
+        Z = Z + np.zeros((1, M))
         kmax = 1
     elif Z.ndim == 1:
         kmax = Z.size
-        Z = Z[:,np.newaxis] + np.zeros((kmax, M))
+        Z = Z[:, np.newaxis] + np.zeros((kmax, M))
     else:
         kmax = Z.size // M
         Z = Z.reshape((kmax, M))
@@ -237,11 +237,11 @@ def multi_zslice(F, S, Z):
     I = np.arange(M, dtype=int)
 
     # Compute interpolation weights
-    A = (Z - S[(C-1,I)])/(S[(C,I)]-S[(C-1,I)])
+    A = (Z - S[(C-1, I)])/(S[(C, I)]-S[(C-1, I)])
     A = A.clip(0.0, 1.0)   # Control the extrapolation
 
     # Do the interpolation
-    R = (1-A)*F[(C-1,I)]+A*F[(C,I)]
+    R = (1-A)*F[(C-1, I)]+A*F[(C, I)]
 
     # Give the result the correct shape
     R = R.reshape((kmax,) + Fshape[1:])
@@ -304,12 +304,12 @@ def z_average(F, z_r, z0, z1):
     #   F[(C0,I)][i]  = F[C0[i], i]
     I = np.arange(M, dtype='int')
     # Interpolate F to the two levels
-    A0 = (z0 - z_r[(C0-1,I)])/(z_r[(C0,I)]-z_r[(C0-1,I)])
+    A0 = (z0 - z_r[(C0-1, I)]) / (z_r[(C0, I)]-z_r[(C0-1, I)])
     A0 = A0.clip(0.0, 1.0)   # Control the extrapolation
-    F0 = (1-A0)*F[(C0-1,I)]+A0*F[(C0,I)]
-    A1 = (z1 - z_r[(C1-1,I)])/(z_r[(C1,I)]-z_r[(C1-1,I)])
+    F0 = (1-A0)*F[(C0-1, I)]+A0*F[(C0, I)]
+    A1 = (z1 - z_r[(C1-1, I)])/(z_r[(C1, I)]-z_r[(C1-1, I)])
     A1 = A1.clip(0.0, 1.0)
-    F1 = (1-A1)*F[(C1-1,I)] + A1*F[(C1,I)]
+    F1 = (1-A1)*F[(C1-1, I)] + A1*F[(C1, I)]
 
     # Find indices again (unclipped)
     C0 = np.sum(z_r < z0, axis=0)
@@ -367,15 +367,15 @@ def s_stretch(N, theta_s, theta_b, stagger='rho', Vstretching=1):
         raise ValueError("stagger must be 'rho' or 'w'")
 
     if Vstretching == 1:
-        cff1=1.0 / np.sinh(theta_s)
-        cff2=0.5 / np.tanh(0.5*theta_s)
+        cff1 = 1.0 / np.sinh(theta_s)
+        cff2 = 0.5 / np.tanh(0.5*theta_s)
         return ((1.0-theta_b)*cff1*np.sinh(theta_s*S)
                 + theta_b*(cff2*np.tanh(theta_s*(S+0.5))-0.5))
 
     elif Vstretching == 2:
         a, b = 1.0, 1.0
         Csur = (1 - np.cosh(theta_s * S))/(np.cosh(theta_s) - 1)
-        Cbot = np.sinh(theta_b * (S+1)) / np.sinh(theta_b) -1
+        Cbot = np.sinh(theta_b * (S+1)) / np.sinh(theta_b) - 1
         mu = (S+1)**a * (1 + (a/b)*(1-(S+1)**b))
         return mu*Csur + (1-mu)*Cbot
 

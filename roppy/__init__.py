@@ -20,5 +20,3 @@ from roppy.section import *
 from roppy.fluxsec import *
 
 from roppy import section2
-
-
