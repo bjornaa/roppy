@@ -104,7 +104,7 @@ def LevelColormap(levels, cmap=None, reverse=False):
     # Normalize the levels to interval [0,1]
     levels = np.array(levels, dtype='float')
     L = (levels-levels[0])/(levels[-1]-levels[0])
-    S = range(nlev)
+    S = list(range(nlev))
     if reverse:
         levels = levels[::-1]
         L = (levels-levels[-1])/(levels[0]-levels[-1])
