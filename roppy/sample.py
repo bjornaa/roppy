@@ -43,7 +43,7 @@ def sample2D2(F, X, Y):
 
     """
 
-    Z = np.add(X,Y)     # Test for compatibility
+    Z = np.add(X, Y)     # Test for compatibility
     if np.isscalar(Z):  # Both X and Y are scalars
         I = int(X)
         J = int(Y)

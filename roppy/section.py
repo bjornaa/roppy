@@ -83,26 +83,6 @@ class Section(object):
                                   mask=self.grid.mask_rho)
         return Fsec
 
-    ## def normal_current(self, U, V):
-    ##     """Sample normal component of velocity field"""
-
-    ##     # Interpolerer foreløpig langs s-flater
-
-    ##     # Offset for interpolation from U and V grid
-    ##     deltaU = -0.5 + self.grid.i0 - self.grid.i0_u
-    ##     deltaV = -0.5 + self.grid.j0 - self.grid.j0_v
-    ##     Usec = np.zeros((self.N, self.nseg))
-    ##     Vsec = np.zeros((self.N, self.nseg))
-    ##     for k in range(self.N):
-    ##         Usec[k,:] = sample2D(U[k,:,:], self.Xm+deltaU, self.Ym)
-    ##         Vsec[k,:] = sample2D(V[k,:,:], self.Xm, self.Ym+deltaV)
-    ##     return self.nx*Usec + self.ny*Vsec
-
-    ## def extend_vertically(self, F):
-    ##     """extends a 1D array to all s-levels"""
-    ##     return np.outer(np.ones(self.N), F)
-    ##     #return np.meshgrid(F, np.ones(self.N))[0]  # slower alternative
-
 
 def linear_section(i0, i1, j0, j1, grd):
     """Make a linear section between rho-points
