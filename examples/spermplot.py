@@ -57,6 +57,7 @@ speedcolors = 'YlOrRd'
 
 # Color of spermplot
 spermcolor = 'black'
+# spermcolor = 'blue'
 # spermcolor = 'white'  # Use white if speedcolors are dark
 
 
@@ -111,7 +112,8 @@ plt.colorbar()
 # Make the spermplot
 plt.plot(X, Y, color=spermcolor)
 plt.plot(X[-1, :], Y[-1, :],
-         linestyle='.', marker='.', color=spermcolor)
+         linestyle='', marker='.', color=spermcolor)
+
 
 # Plot green land mask
 landmask(grid, 'green')
