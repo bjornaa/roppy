@@ -110,10 +110,12 @@ class FluxSection(object):
         if self.grid.j0 > 0:
             joff = 1
 
-        IU = self.I[self.Eu] - 1 - self.grid.i0 + ioff
-        IV = self.I[self.Ev] - (1+dirV)//2 - self.grid.i0
-        JU = self.J[self.Eu] - (1-dirU)//2 - self.grid.j0
-        JV = self.J[self.Ev] - 1 - self.grid.j0 + joff
+        I = self.I[:-1]
+        J = self.J[:-1]
+        IU = I[self.Eu] - self.grid.i0
+        IV = I[self.Ev] - (1+dirV)//2 - self.grid.i0
+        JU = J[self.Eu] - (1-dirU)//2 - self.grid.j0
+        JV = J[self.Ev] - self.grid.j0
 
         UVsec = np.empty((self.N, self.L))
         UVsec[:, self.Eu] = dirU * U[:, JU, IU]
@@ -144,10 +146,12 @@ class FluxSection(object):
         dirV = self.dir[self.Ev]
 
         # Find indices
-        IU = self.I[self.Eu] - self.grid.i0
-        IV = self.I[self.Ev] - (1+dirV)//2 - self.grid.i0
-        JU = self.J[self.Eu] - (1-dirU)//2 - self.grid.j0
-        JV = self.J[self.Ev] - self.grid.j0
+        I = self.I[:-1]
+        J = self.J[:-1]
+        IU = I[self.Eu] - self.grid.i0
+        IV = I[self.Ev] - (1+dirV)//2 - self.grid.i0
+        JU = J[self.Eu] - (1-dirU)//2 - self.grid.j0
+        JV = J[self.Ev] - self.grid.j0
 
         # Average F to U- and V-points
         Fsec = np.empty((self.L,), F.dtype)
