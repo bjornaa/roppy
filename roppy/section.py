@@ -31,37 +31,48 @@ class Section(object):
         self.Y = Y
 
         # Section size
-        self.L = len(self.X)         # Number of nodes
+        self.L = len(self.X)  # Number of nodes
         self.N = len(self.grid.Cs_r)
 
         # Topography
-        self.h = sample2D(self.grid.h, self.X, self.Y,
-                          mask=self.grid.mask_rho, undef_value=1.0)
+        self.h = sample2D(
+            self.grid.h, self.X, self.Y, mask=self.grid.mask_rho, undef_value=1.0
+        )
 
         # Metric
         pm = sample2D(self.grid.pm, self.X, self.Y)
         pn = sample2D(self.grid.pn, self.X, self.Y)
-        dX = 2 * (X[1:]-X[:-1]) / (pm[:-1] + pm[1:])      # unit = meter
-        dY = 2 * (Y[1:]-Y[:-1]) / (pn[:-1] + pn[1:])
+        dX = 2 * (X[1:] - X[:-1]) / (pm[:-1] + pm[1:])  # unit = meter
+        dY = 2 * (Y[1:] - Y[:-1]) / (pn[:-1] + pn[1:])
         # Assume spacing is close enough to approximate distance
-        self.dS = np.sqrt(dX*dX+dY*dY)
+        self.dS = np.sqrt(dX * dX + dY * dY)
         # Cumulative distance
         self.S = np.concatenate(([0], np.add.accumulate(self.dS)))
         # Weights for trapez integration (linear interpolation)
-        self.W = 0.5*np.concatenate(([self.dS[0]],
-                                     self.dS[:-1] + self.dS[1:],
-                                     [self.dS[-1]]))
+        self.W = 0.5 * np.concatenate(
+            ([self.dS[0]], self.dS[:-1] + self.dS[1:], [self.dS[-1]])
+        )
 
         # nx, ny  = dY, -dX
         # norm = np.sqrt(nx*nx + ny*ny)
         # self.nx, self.ny = nx/norm, ny/norm
 
         # Vertical structure
-        self.z_r = sdepth(self.h, self.grid.hc, self.grid.Cs_r,
-                          stagger='rho', Vtransform=self.grid.Vtransform)
-        self.z_w = sdepth(self.h, self.grid.hc, self.grid.Cs_w,
-                          stagger='w', Vtransform=self.grid.Vtransform)
-        self.dZ = self.z_w[1:, :]-self.z_w[:-1, :]
+        self.z_r = sdepth(
+            self.h,
+            self.grid.hc,
+            self.grid.Cs_r,
+            stagger="rho",
+            Vtransform=self.grid.Vtransform,
+        )
+        self.z_w = sdepth(
+            self.h,
+            self.grid.hc,
+            self.grid.Cs_w,
+            stagger="w",
+            Vtransform=self.grid.Vtransform,
+        )
+        self.dZ = self.z_w[1:, :] - self.z_w[:-1, :]
 
         self.Area = self.dZ * self.W
 
@@ -79,8 +90,7 @@ class Section(object):
 
         Fsec = np.zeros((self.N, self.L))
         for k in range(self.N):
-            Fsec[k, :] = sample2D(F[k, :, :], self.X, self.Y,
-                                  mask=self.grid.mask_rho)
+            Fsec[k, :] = sample2D(F[k, :, :], self.X, self.Y, mask=self.grid.mask_rho)
         return Fsec
 
 
@@ -92,22 +102,22 @@ def linear_section(i0, i1, j0, j1, grd):
     Returns a section object
     """
 
-    if abs(i1-i0) >= abs(j0-j1):  # Work horizontally
+    if abs(i1 - i0) >= abs(j0 - j1):  # Work horizontally
         if i0 < i1:
-            X = np.arange(i0, i1+1)
+            X = np.arange(i0, i1 + 1)
         elif i0 > i1:
-            X = np.arange(i0, i1-1, -1)
+            X = np.arange(i0, i1 - 1, -1)
         else:  # i0 = i1 and j0 = j1
             raise ValueError("Section reduced to a point")
-        slope = float(j1-j0) / (i1-i0)
-        Y = j0 + slope*(X-i0)
+        slope = float(j1 - j0) / (i1 - i0)
+        Y = j0 + slope * (X - i0)
 
-    else:   # Work vertically
+    else:  # Work vertically
         if j0 < j1:
-            Y = np.arange(j0, j1+1)
+            Y = np.arange(j0, j1 + 1)
         else:
-            Y = np.arange(j0, j1-1, -1)
-        slope = float(i1-i0) / (j1-j0)
-        X = i0 + slope*(Y-j0)
+            Y = np.arange(j0, j1 - 1, -1)
+        slope = float(i1 - i0) / (j1 - j0)
+        X = i0 + slope * (Y - j0)
 
     return Section(grd, X, Y)

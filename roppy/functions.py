@@ -19,10 +19,17 @@ def kinetic_energy(U, V):
     # Uses estimate (U_w**2 + U_e**2 + U_w*U_e)/3 for U**2
     # This is correct to second order
 
-    KE = (  U[...,:,:-1]**2 + U[...,:,1:]**2 + U[...,:,:-1]*U[...,:,1:]
-         + V[...,:-1,:]**2 + V[...,1:,:]**2 + V[...,:-1,:]*V[...,1:,:]) / 6.0
+    KE = (
+        U[..., :, :-1] ** 2
+        + U[..., :, 1:] ** 2
+        + U[..., :, :-1] * U[..., :, 1:]
+        + V[..., :-1, :] ** 2
+        + V[..., 1:, :] ** 2
+        + V[..., :-1, :] * V[..., 1:, :]
+    ) / 6.0
 
     return KE
+
 
 # ---------
 
@@ -56,14 +63,14 @@ def divergence(U, V, pm, pn):
 
     """
 
-    A = 2.0 * U / (pn[1:-1, :-1] + pn[1:-1, 1:])    # U/pn
-    B = 2.0 * V / (pm[:-1, 1:-1] + pm[1:, 1:-1])    # V/pm
+    A = 2.0 * U / (pn[1:-1, :-1] + pn[1:-1, 1:])  # U/pn
+    B = 2.0 * V / (pm[:-1, 1:-1] + pm[1:, 1:-1])  # V/pm
     pmn = pm[1:-1, 1:-1] * pn[1:-1, 1:-1]
 
-    div = pmn * (  A[..., :, 1:] - A[..., :, :-1]
-                 + B[..., 1:, :] - B[..., :-1, :])
+    div = pmn * (A[..., :, 1:] - A[..., :, :-1] + B[..., 1:, :] - B[..., :-1, :])
 
     return div
+
 
 # ---------
 
@@ -90,8 +97,8 @@ def curl(U, V, pm, pn):
     # Hva er best numerisk
 
     # Factors at psi-points
-    pm_psi = 0.25*(pm[:-1,:-1] + pm[1:,:-1] + pm[:-1,1:] + pm[1:,1:])
-    pn_psi = 0.25*(pn[:-1,:-1] + pn[1:,:-1] + pn[:-1,1:] + pn[1:,1:])
+    pm_psi = 0.25 * (pm[:-1, :-1] + pm[1:, :-1] + pm[:-1, 1:] + pm[1:, 1:])
+    pn_psi = 0.25 * (pn[:-1, :-1] + pn[1:, :-1] + pn[:-1, 1:] + pn[1:, 1:])
 
     # Denne gir korrekt på solid body i polar grid
     # (men alltid bedre ???)
@@ -100,10 +107,11 @@ def curl(U, V, pm, pn):
 
     pmn = pm_psi * pn_psi
 
-    Udx = 2 * U / (pm[:, :-1] + pm[:, 1:])     # U/pm
-    Vdy = 2 * V / (pn[:-1, :] + pn[1:, :])     # V/pn
+    Udx = 2 * U / (pm[:, :-1] + pm[:, 1:])  # U/pm
+    Vdy = 2 * V / (pn[:-1, :] + pn[1:, :])  # V/pn
 
-    curl = pmn * (   Udx[..., 1:, :] - Udx[..., :-1, :]
-                   - Vdy[..., :, 1:] + Vdy[..., :, :-1])
+    curl = pmn * (
+        Udx[..., 1:, :] - Udx[..., :-1, :] - Vdy[..., :, 1:] + Vdy[..., :, :-1]
+    )
 
     return curl

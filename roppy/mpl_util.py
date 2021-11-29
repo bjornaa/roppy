@@ -25,8 +25,7 @@ Function overview
 # 2010-01-05
 # -----------------------------------
 
-from __future__ import (print_function, division,
-                        absolute_import, unicode_literals)
+from __future__ import print_function, division, absolute_import, unicode_literals
 
 import numpy as np
 import matplotlib as mpl
@@ -37,7 +36,8 @@ import matplotlib.pyplot as plt
 # Plot land mask
 # ------------------
 
-def landmask(grd, color='0.8', pcolor='pcolormesh'):
+
+def landmask(grd, color="0.8", pcolor="pcolormesh"):
     """Make a land mask, constant colour
 
     *grd* : An *SGrid* instance or a ROMS *mask_rho* array
@@ -71,7 +71,7 @@ def landmask(grd, color='0.8', pcolor='pcolormesh'):
     elif pcolor == "pcolor":
         plt.pcolor(X, Y, M, cmap=constmap)
     elif pcolor == "imshow":
-        plt.imshow(X, origin='lower', cmap=constmap)
+        plt.imshow(X, origin="lower", cmap=constmap)
 
 
 # -------------
@@ -98,16 +98,16 @@ def LevelColormap(levels, cmap=None, reverse=False):
 
     # Spread the colours maximally
     nlev = len(levels)
-    S = np.arange(nlev, dtype='float')/(nlev-1)
+    S = np.arange(nlev, dtype="float") / (nlev - 1)
     A = cmap(S)
 
     # Normalize the levels to interval [0,1]
-    levels = np.array(levels, dtype='float')
-    L = (levels-levels[0])/(levels[-1]-levels[0])
+    levels = np.array(levels, dtype="float")
+    L = (levels - levels[0]) / (levels[-1] - levels[0])
     S = list(range(nlev))
     if reverse:
         levels = levels[::-1]
-        L = (levels-levels[-1])/(levels[0]-levels[-1])
+        L = (levels - levels[-1]) / (levels[0] - levels[-1])
         S.reverse()
 
     # Make the colour dictionary
@@ -118,12 +118,14 @@ def LevelColormap(levels, cmap=None, reverse=False):
 
     # Use
     return plt.matplotlib.colors.LinearSegmentedColormap(
-        '%s_levels' % cmap.name, cdict, 256)
+        "%s_levels" % cmap.name, cdict, 256
+    )
+
 
 # -------------------
 
 
-def levelmap(L, cmap=None, reverse=False, extend='neither'):
+def levelmap(L, cmap=None, reverse=False, extend="neither"):
     """Make colormap and normalization from a sequence of levels
 
     *L* : increasing sequence of levels
@@ -142,7 +144,7 @@ def levelmap(L, cmap=None, reverse=False, extend='neither'):
     N = len(L)
 
     # Normalize using the levels
-    new_norm = mpl.colors.BoundaryNorm(L, N-1)
+    new_norm = mpl.colors.BoundaryNorm(L, N - 1)
 
     # Start with an existing colormap
     if not cmap:
@@ -150,7 +152,7 @@ def levelmap(L, cmap=None, reverse=False, extend='neither'):
 
     # Handle the extend
     if extend == "both":
-        ncol = N+1
+        ncol = N + 1
         c_over = True
         c_under = True
         I = slice(1, -1)
@@ -165,7 +167,7 @@ def levelmap(L, cmap=None, reverse=False, extend='neither'):
         c_under = False
         I = slice(None, -1)
     else:  # extend = neither
-        ncol = N-1
+        ncol = N - 1
         c_over = False
         c_under = False
         I = slice(None)

@@ -33,17 +33,17 @@ class FluxSection(object):
         self.I = np.asarray(I)
         self.J = np.asarray(J)
         # Grid coordinates of (mid points of) edges
-        self.X = 0.5*(self.I[:-1]+self.I[1:]) - 0.5
-        self.Y = 0.5*(self.J[:-1]+self.J[1:]) - 0.5
+        self.X = 0.5 * (self.I[:-1] + self.I[1:]) - 0.5
+        self.Y = 0.5 * (self.J[:-1] + self.J[1:]) - 0.5
 
         # Section size
-        self.L = len(self.I)-1         # Number of nodes
+        self.L = len(self.I) - 1  # Number of nodes
         self.N = len(self.grid.Cs_r)
 
         # Logical indexing for U, V edges
         # E = np.arange(self.L, dtype=int)       # Edge indices
-        self.Eu = (self.I[:-1] == self.I[1:])  # True for U edges
-        self.Ev = (self.J[:-1] == self.J[1:])  # True for V edges
+        self.Eu = self.I[:-1] == self.I[1:]  # True for U edges
+        self.Ev = self.J[:-1] == self.J[1:]  # True for V edges
 
         # Direction
         # Convention, positive flux to the right of the sequence
@@ -53,7 +53,7 @@ class FluxSection(object):
         #         pointing left, positive flux up,    dir = +1
         dir = np.zeros((self.L,), dtype=int)
         dir[self.Eu] = self.J[1:][self.Eu] - self.J[:-1][self.Eu]
-        dir[self.Ev] = - self.I[1:][self.Ev] + self.I[:-1][self.Ev]
+        dir[self.Ev] = -self.I[1:][self.Ev] + self.I[:-1][self.Ev]
         self.dir = dir
 
         # Topography
@@ -66,16 +66,21 @@ class FluxSection(object):
         pn = self.sample2D(self.grid.pn)
 
         # Distance along section
-        dX = np.where(self.Ev, 1.0/pm, 0)
-        dY = np.where(self.Eu, 1.0/pn, 0)
+        dX = np.where(self.Ev, 1.0 / pm, 0)
+        dY = np.where(self.Eu, 1.0 / pn, 0)
         # dS = sqrt(dX**2 + dY**2) simplifies in this case
         self.dS = np.maximum(dX, dY)
         self.dX, self.dY = dX, dY
 
         # Vertical structure
-        self.z_w = sdepth(self.h, self.grid.hc, self.grid.Cs_w,
-                          stagger='w', Vtransform=self.grid.Vtransform)
-        self.dZ = self.z_w[1:, :]-self.z_w[:-1, :]
+        self.z_w = sdepth(
+            self.h,
+            self.grid.hc,
+            self.grid.Cs_w,
+            stagger="w",
+            Vtransform=self.grid.Vtransform,
+        )
+        self.dZ = self.z_w[1:, :] - self.z_w[:-1, :]
         self.dSdZ = self.dS * self.dZ
 
     def __len__(self):
@@ -113,8 +118,8 @@ class FluxSection(object):
         I = self.I[:-1]
         J = self.J[:-1]
         IU = I[self.Eu] - self.grid.i0
-        IV = I[self.Ev] - (1+dirV)//2 - self.grid.i0
-        JU = J[self.Eu] - (1-dirU)//2 - self.grid.j0
+        IV = I[self.Ev] - (1 + dirV) // 2 - self.grid.i0
+        JU = J[self.Eu] - (1 - dirU) // 2 - self.grid.j0
         JV = J[self.Ev] - self.grid.j0
 
         UVsec = np.empty((self.N, self.L))
@@ -123,7 +128,7 @@ class FluxSection(object):
 
         return UVsec * self.dSdZ
 
-# -------------------------------
+    # -------------------------------
 
     def transport(self, U, V):
         """Integrated flux though the section"""
@@ -134,7 +139,7 @@ class FluxSection(object):
 
         return tot_flux, pos_flux
 
-# ---------------------------------
+    # ---------------------------------
 
     def sample2D(self, F):
         """Sample a horizontal field (rho-points) to the section edges"""
@@ -149,18 +154,18 @@ class FluxSection(object):
         I = self.I[:-1]
         J = self.J[:-1]
         IU = I[self.Eu] - self.grid.i0
-        IV = I[self.Ev] - (1+dirV)//2 - self.grid.i0
-        JU = J[self.Eu] - (1-dirU)//2 - self.grid.j0
+        IV = I[self.Ev] - (1 + dirV) // 2 - self.grid.i0
+        JU = J[self.Eu] - (1 - dirU) // 2 - self.grid.j0
         JV = J[self.Ev] - self.grid.j0
 
         # Average F to U- and V-points
         Fsec = np.empty((self.L,), F.dtype)
-        Fsec[self.Eu] = 0.5*(F[JU, IU] + F[JU, IU-1])
-        Fsec[self.Ev] = 0.5*(F[JV, IV] + F[JV-1, IV])
+        Fsec[self.Eu] = 0.5 * (F[JU, IU] + F[JU, IU - 1])
+        Fsec[self.Ev] = 0.5 * (F[JV, IV] + F[JV - 1, IV])
 
         return Fsec
 
-# ---------------------------------
+    # ---------------------------------
 
     def sample3D(self, F):
         """Sample a 3D (rho-)field to the section"""
@@ -172,45 +177,46 @@ class FluxSection(object):
             Fsec[k, :] = self.sample2D(F[k, :, :])
         return Fsec
 
+
 # -------------------------------------------
 
 
 def staircase_from_line(i0, i1, j0, j1):
 
     swapXY = False
-    if abs(i1-i0) < abs(j0-j1):  # Mostly vertical
+    if abs(i1 - i0) < abs(j0 - j1):  # Mostly vertical
         i0, i1, j0, j1 = j0, j1, i0, i1
         swapXY = True
 
     # Find integer points X0 and Y0 on line
     if i0 < i1:
-        X0 = list(range(i0, i1+1))
+        X0 = list(range(i0, i1 + 1))
     elif i0 > i1:
-        X0 = list(range(i0, i1-1, -1))
+        X0 = list(range(i0, i1 - 1, -1))
     else:  # i0 = i1 and j0 = j1
         raise ValueError("Section reduced to a point")
-    slope = float(j1-j0) / (i1-i0)
-    Y0 = [j0 + slope*(x-i0) for x in X0]
+    slope = float(j1 - j0) / (i1 - i0)
+    Y0 = [j0 + slope * (x - i0) for x in X0]
 
     # sign = -1 if Y0 is decreasing, otherwise sign = 1
     sign = 1
-    if Y0[-1] < Y0[0]:     # Decreasing Y
+    if Y0[-1] < Y0[0]:  # Decreasing Y
         sign = -1
 
     # Make lists of positions along staircase
     X, Y = [i0], [j0]
 
-    for i in range(len(X0)-1):
-        x, y = X[-1], Y[-1]          # Last point on list
-        x0, y0 = X0[i], Y0[i]        # Present point along line
-        x1, y1 = X0[i+1], Y0[i+1]    # Next point along line
-        if abs(y-y0) + abs(y-y1) > abs(y+sign-y0) + abs(y+sign-y1):
+    for i in range(len(X0) - 1):
+        x, y = X[-1], Y[-1]  # Last point on list
+        x0, y0 = X0[i], Y0[i]  # Present point along line
+        x1, y1 = X0[i + 1], Y0[i + 1]  # Next point along line
+        if abs(y - y0) + abs(y - y1) > abs(y + sign - y0) + abs(y + sign - y1):
             # jump
             X.append(x0)
-            Y.append(y+sign)
+            Y.append(y + sign)
             X.append(x1)
-            Y.append(y+sign)
-        else:                        # Ordinary append
+            Y.append(y + sign)
+        else:  # Ordinary append
             X.append(x1)
             Y.append(y)
     # Possible jump to last point

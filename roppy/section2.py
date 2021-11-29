@@ -28,8 +28,8 @@ class Section(object):
         self.Y = Y - grid.j0
 
         # Nodes
-        self.Xm = 0.5*(self.X[:-1] + self.X[1:])
-        self.Ym = 0.5*(self.Y[:-1] + self.Y[1:])
+        self.Xm = 0.5 * (self.X[:-1] + self.X[1:])
+        self.Ym = 0.5 * (self.Y[:-1] + self.Y[1:])
 
         # Section size
         self.nseg = len(self.Xm)  # Number of segments = Number of nodes
@@ -37,8 +37,9 @@ class Section(object):
 
         # Compatible with both SGrid and grdClass
         try:
-            self.h = sample2D(self.grid.h, self.Xm, self.Ym,
-                              mask=self.grid.mask_rho, undef_value=0.0)
+            self.h = sample2D(
+                self.grid.h, self.Xm, self.Ym, mask=self.grid.mask_rho, undef_value=0.0
+            )
         except AttributeError:
             self.h = sample2D(self.grid.depth, self.Xm, self.Ym)
 
@@ -47,25 +48,35 @@ class Section(object):
 
         # Unit normal vector (nx, ny)
         # Sjekk om dette er korrekt hvis pm og pn er ulike
-        dX = (X[1:]-X[:-1]) / pm
-        dY = (Y[1:]-Y[:-1]) / pn
+        dX = (X[1:] - X[:-1]) / pm
+        dY = (Y[1:] - Y[:-1]) / pn
 
         # Length of segments
         #   Kan kanskje forbedres med sfærisk avstand
-        self.dS = np.sqrt(dX*dX+dY*dY)
+        self.dS = np.sqrt(dX * dX + dY * dY)
         # Cumulative distance (at vertices)s
         self.S = np.concatenate(([0], np.add.accumulate(self.dS)))
 
         nx, ny = dY, -dX
-        norm = np.sqrt(nx*nx + ny*ny)
-        self.nx, self.ny = nx/norm, ny/norm
+        norm = np.sqrt(nx * nx + ny * ny)
+        self.nx, self.ny = nx / norm, ny / norm
 
         # Vertical structure
-        self.z_r = sdepth(self.h, self.grid.hc, self.grid.Cs_r,
-                          stagger='rho', Vtransform=self.grid.Vtransform)
-        self.z_w = sdepth(self.h, self.grid.hc, self.grid.Cs_w,
-                          stagger='w', Vtransform=self.grid.Vtransform)
-        self.dZ = self.z_w[1:, :]-self.z_w[:-1, :]
+        self.z_r = sdepth(
+            self.h,
+            self.grid.hc,
+            self.grid.Cs_r,
+            stagger="rho",
+            Vtransform=self.grid.Vtransform,
+        )
+        self.z_w = sdepth(
+            self.h,
+            self.grid.hc,
+            self.grid.Cs_w,
+            stagger="w",
+            Vtransform=self.grid.Vtransform,
+        )
+        self.dZ = self.z_w[1:, :] - self.z_w[:-1, :]
 
         self.Area = self.dZ * self.dS
 
@@ -80,8 +91,7 @@ class Section(object):
 
         Fsec = np.zeros((self.grid.N, self.nseg))
         for k in range(self.grid.N):
-            Fsec[k, :] = sample2D(F[k, :, :], self.Xm, self.Ym,
-                                  mask=self.grid.mask_rho)
+            Fsec[k, :] = sample2D(F[k, :, :], self.Xm, self.Ym, mask=self.grid.mask_rho)
         Fsec = np.ma.masked_where(self.extend_vertically(self.h) == 0, Fsec)
         return Fsec
 
@@ -96,9 +106,9 @@ class Section(object):
         Usec = np.zeros((self.N, self.nseg))
         Vsec = np.zeros((self.N, self.nseg))
         for k in range(self.N):
-            Usec[k, :] = sample2D(U[k, :, :], self.Xm+deltaU, self.Ym)
-            Vsec[k, :] = sample2D(V[k, :, :], self.Xm, self.Ym+deltaV)
-        return self.nx*Usec + self.ny*Vsec
+            Usec[k, :] = sample2D(U[k, :, :], self.Xm + deltaU, self.Ym)
+            Vsec[k, :] = sample2D(V[k, :, :], self.Xm, self.Ym + deltaV)
+        return self.nx * Usec + self.ny * Vsec
 
     def extend_vertically(self, F):
         """extends a 1D array to all s-levels"""

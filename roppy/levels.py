@@ -32,7 +32,7 @@ def nice(v):
 
     """
     e = math.floor(math.log10(v))  # Exponent
-    b = v / 10**e
+    b = v / 10 ** e
     if b < 1.5:
         a = 1
     elif b < 3.5:
@@ -41,7 +41,7 @@ def nice(v):
         a = 5
     else:
         a = 10
-    d = a*10**e
+    d = a * 10 ** e
     return d
 
 
@@ -49,8 +49,16 @@ def nice(v):
 # Gives lover value if equally close to two nice numbers
 def nice2(v):
     e = math.floor(math.log10(v))
-    B = [10**e, 2*10**e, 5*10**e, 10*10**e, 20*10**e, 50*10**e, 100*10**e]
-    d0, i0 = min([(abs(b-v), i) for i, b in enumerate(B)])
+    B = [
+        10 ** e,
+        2 * 10 ** e,
+        5 * 10 ** e,
+        10 * 10 ** e,
+        20 * 10 ** e,
+        50 * 10 ** e,
+        100 * 10 ** e,
+    ]
+    d0, i0 = min([(abs(b - v), i) for i, b in enumerate(B)])
     return B[i0]
 
 
@@ -73,8 +81,8 @@ def nice_levels(fmin, fmax, n=6):
 
     """
 
-    v = (fmax - fmin)/float(n)    # first guess at step length
-    d = nice(v)                   # nice step length
-    t0 = int(math.ceil(fmin/d))   #
-    t1 = int(math.floor(fmax/d))
-    return [d*s for s in range(t0, t1+1)]
+    v = (fmax - fmin) / float(n)  # first guess at step length
+    d = nice(v)  # nice step length
+    t0 = int(math.ceil(fmin / d))  #
+    t1 = int(math.floor(fmax / d))
+    return [d * s for s in range(t0, t1 + 1)]

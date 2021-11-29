@@ -22,7 +22,7 @@
 # 2010-09-30
 # -----------------------------------
 
-from __future__ import (absolute_import, division)
+from __future__ import absolute_import, division
 
 import numpy as np
 
@@ -58,30 +58,31 @@ def sdepth(H, Hc, C, stagger="rho", Vtransform=1):
 
     """
     H = np.asarray(H)
-    Hshape = H.shape      # Save the shape of H
-    H = H.ravel()         # and make H 1D for easy shape maniplation
+    Hshape = H.shape  # Save the shape of H
+    H = H.ravel()  # and make H 1D for easy shape maniplation
     C = np.asarray(C)
     N = len(C)
-    outshape = (N,) + Hshape       # Shape of output
-    if stagger == 'rho':
-        S = -1.0 + (0.5+np.arange(N))/N    # Unstretched coordinates
-    elif stagger == 'w':
+    outshape = (N,) + Hshape  # Shape of output
+    if stagger == "rho":
+        S = -1.0 + (0.5 + np.arange(N)) / N  # Unstretched coordinates
+    elif stagger == "w":
         S = np.linspace(-1.0, 0.0, N)
     else:
         raise ValueError("stagger must be 'rho' or 'w'")
 
-    if Vtransform == 1:         # Default transform by Song and Haidvogel
+    if Vtransform == 1:  # Default transform by Song and Haidvogel
         A = Hc * (S - C)[:, None]
         B = np.outer(C, H)
         return (A + B).reshape(outshape)
 
-    elif Vtransform == 2:       # New transform by Shchepetkin
-        N = Hc*S[:, None] + np.outer(C, H)
-        D = (1.0 + Hc/H)
-        return (N/D).reshape(outshape)
+    elif Vtransform == 2:  # New transform by Shchepetkin
+        N = Hc * S[:, None] + np.outer(C, H)
+        D = 1.0 + Hc / H
+        return (N / D).reshape(outshape)
 
     else:
         raise ValueError("Unknown Vtransform")
+
 
 # ------------------------------------
 
@@ -93,7 +94,8 @@ def sdepth_w(H, Hc, cs_w):
     use *sdepth(H, Hc, cs_w, stagger='w')* instead
 
     """
-    return sdepth(H, Hc, cs_w, stagger='w')
+    return sdepth(H, Hc, cs_w, stagger="w")
+
 
 # ------------------------------------------
 # Vertical slicing e.t.c.
@@ -132,7 +134,7 @@ def zslice(F, S, z):
 
     F = np.asarray(F)
     S = np.asarray(S)
-    z = np.asarray(z, dtype='float')
+    z = np.asarray(z, dtype="float")
     Fshape = F.shape  # Save original shape
     if S.shape != Fshape:
         raise ValueError("F and z_r must have same shape")
@@ -140,8 +142,8 @@ def zslice(F, S, z):
         raise ValueError("z must be scalar or have shape = F.shape[1:]")
 
     # Flatten all non-vertical dimensions
-    N = F.shape[0]        # Length of vertical dimension
-    M = F.size // N        # Combined length of horizontal dimension(s)
+    N = F.shape[0]  # Length of vertical dimension
+    M = F.size // N  # Combined length of horizontal dimension(s)
     F = F.reshape((N, M))
     S = S.reshape((N, M))
     if z.shape:
@@ -152,27 +154,28 @@ def zslice(F, S, z):
     # C = np.apply_along_axis(np.searchsorted, 0, S, z)
     # but the following is much faster
     C = np.sum(S < z, axis=0)
-    C = C.clip(1, N-1)
+    C = C.clip(1, N - 1)
 
     # For vectorisation
     # construct index array tuples D and Dm such that
     #   F[D][i]  = F[C[i], i]
     #   F[Dm][i] = F[C[i]-1, i]
-    I = np.arange(M, dtype='int')
+    I = np.arange(M, dtype="int")
     D = (C, I)
-    Dm = (C-1, I)
+    Dm = (C - 1, I)
 
     # Compute interpolation weights
-    A = (z - S[Dm]) / (S[D]-S[Dm])
-    A = A.clip(0.0, 1.0)   # Control the extrapolation
+    A = (z - S[Dm]) / (S[D] - S[Dm])
+    A = A.clip(0.0, 1.0)  # Control the extrapolation
 
     # Do the linear interpolation
-    R = (1-A)*F[Dm]+A*F[D]
+    R = (1 - A) * F[Dm] + A * F[D]
 
     # Give the result the correct s
     R = R.reshape(Fshape[1:])
 
     return R
+
 
 # -----------------------------------------------
 
@@ -210,7 +213,7 @@ def multi_zslice(F, S, Z):
     S = S.reshape((N, M))
 
     # Make z.shape = (M,)
-    Z = np.asarray(Z, dtype='float')
+    Z = np.asarray(Z, dtype="float")
     # Valid possibilities
     # 1) Z = single scalar (shape = ()), one constant value
     # 2) Z = 1D array, shape=(kmax), a set of constant depths
@@ -231,22 +234,23 @@ def multi_zslice(F, S, Z):
 
     # shape: kmax, N, M => kmax, M
     C = np.sum(S[np.newaxis, :, :] < Z[:, np.newaxis, :], axis=1)
-    C = C.clip(1, N-1)
+    C = C.clip(1, N - 1)
 
     # Horizontal index
     I = np.arange(M, dtype=int)
 
     # Compute interpolation weights
-    A = (Z - S[(C-1, I)])/(S[(C, I)]-S[(C-1, I)])
-    A = A.clip(0.0, 1.0)   # Control the extrapolation
+    A = (Z - S[(C - 1, I)]) / (S[(C, I)] - S[(C - 1, I)])
+    A = A.clip(0.0, 1.0)  # Control the extrapolation
 
     # Do the interpolation
-    R = (1-A)*F[(C-1, I)]+A*F[(C, I)]
+    R = (1 - A) * F[(C - 1, I)] + A * F[(C, I)]
 
     # Give the result the correct shape
     R = R.reshape((kmax,) + Fshape[1:])
 
     return R
+
 
 # ------------------------------------------------------
 
@@ -294,32 +298,32 @@ def z_average(F, z_r, z0, z1):
     #   C0 = np.apply_along_axis(np.searchsorted, 0, z_r, z0)
     # but the following is much faster
     C0 = np.sum(z_r < z0, axis=0)
-    C0 = C0.clip(1, N-1)       # Clip to avoid illegal indices
+    C0 = C0.clip(1, N - 1)  # Clip to avoid illegal indices
 
     # Bracket z1
     C1 = np.sum(z_r < z1, axis=0)
-    C1 = C1.clip(1, N-1)
+    C1 = C1.clip(1, N - 1)
 
     # Use advanced indexing for vectorisation
     #   F[(C0,I)][i]  = F[C0[i], i]
-    I = np.arange(M, dtype='int')
+    I = np.arange(M, dtype="int")
     # Interpolate F to the two levels
-    A0 = (z0 - z_r[(C0-1, I)]) / (z_r[(C0, I)]-z_r[(C0-1, I)])
-    A0 = A0.clip(0.0, 1.0)   # Control the extrapolation
-    F0 = (1-A0)*F[(C0-1, I)]+A0*F[(C0, I)]
-    A1 = (z1 - z_r[(C1-1, I)])/(z_r[(C1, I)]-z_r[(C1-1, I)])
+    A0 = (z0 - z_r[(C0 - 1, I)]) / (z_r[(C0, I)] - z_r[(C0 - 1, I)])
+    A0 = A0.clip(0.0, 1.0)  # Control the extrapolation
+    F0 = (1 - A0) * F[(C0 - 1, I)] + A0 * F[(C0, I)]
+    A1 = (z1 - z_r[(C1 - 1, I)]) / (z_r[(C1, I)] - z_r[(C1 - 1, I)])
     A1 = A1.clip(0.0, 1.0)
-    F1 = (1-A1)*F[(C1-1, I)] + A1*F[(C1, I)]
+    F1 = (1 - A1) * F[(C1 - 1, I)] + A1 * F[(C1, I)]
 
     # Find indices again (unclipped)
     C0 = np.sum(z_r < z0, axis=0)
     C1 = np.sum(z_r < z1, axis=0)
 
     R = np.zeros(M, dtype=np.float64)
-    X = np.zeros(N+2, dtype=np.float64)
-    Y = np.zeros(N+2, dtype=np.float64)
-    z0 = z0 + R    # Make sure they are spatial arrays
-    z1 = z1 + R    # For indexing below
+    X = np.zeros(N + 2, dtype=np.float64)
+    Y = np.zeros(N + 2, dtype=np.float64)
+    z0 = z0 + R  # Make sure they are spatial arrays
+    z1 = z1 + R  # For indexing below
 
     for i in I:
         X[:] = 0.0
@@ -327,24 +331,27 @@ def z_average(F, z_r, z0, z1):
         nz = C1[i] - C0[i]  # Number of rho-points between z0 and z1
         # Set up arrays for trapezoidal integration
         X[0] = z0[i]
-        X[1:nz+1] = z_r[C0[i]:C1[i], i]
-        X[nz+1] = z1[i]
+        X[1 : nz + 1] = z_r[C0[i] : C1[i], i]
+        X[nz + 1] = z1[i]
         Y[0] = F0[i]
-        Y[1:nz+1] = F[C0[i]:C1[i], i]
-        Y[nz+1] = F1[i]
+        Y[1 : nz + 1] = F[C0[i] : C1[i], i]
+        Y[nz + 1] = F1[i]
         # Perform the integration
-        R[i] = 0.5 * np.dot(X[1:nz+2]-X[0:nz+1], Y[1:nz+2]+Y[0:nz+1])
+        R[i] = 0.5 * np.dot(
+            X[1 : nz + 2] - X[0 : nz + 1], Y[1 : nz + 2] + Y[0 : nz + 1]
+        )
 
     # Compute average and revert to correct shape
-    R = R / (z1-z0)
+    R = R / (z1 - z0)
     R = R.reshape(Fshape[1:])
 
     return R
 
+
 # ----------------------------------
 
 
-def s_stretch(N, theta_s, theta_b, stagger='rho', Vstretching=1):
+def s_stretch(N, theta_s, theta_b, stagger="rho", Vstretching=1):
     """Compute a s-level stretching array
 
     *N* : Number of vertical levels
@@ -359,27 +366,42 @@ def s_stretch(N, theta_s, theta_b, stagger='rho', Vstretching=1):
 
     """
 
-    if stagger == 'rho':
-        S = -1.0 + (0.5+np.arange(N))/N
+    if stagger == "rho":
+        S = -1.0 + (0.5 + np.arange(N)) / N
     elif stagger == "w":
-        S = np.linspace(-1.0, 0.0, N+1)
+        S = np.linspace(-1.0, 0.0, N + 1)
     else:
         raise ValueError("stagger must be 'rho' or 'w'")
 
     if Vstretching == 1:
         cff1 = 1.0 / np.sinh(theta_s)
-        cff2 = 0.5 / np.tanh(0.5*theta_s)
-        return ((1.0-theta_b)*cff1*np.sinh(theta_s*S)
-                + theta_b*(cff2*np.tanh(theta_s*(S+0.5))-0.5))
+        cff2 = 0.5 / np.tanh(0.5 * theta_s)
+        return (1.0 - theta_b) * cff1 * np.sinh(theta_s * S) + theta_b * (
+            cff2 * np.tanh(theta_s * (S + 0.5)) - 0.5
+        )
 
     elif Vstretching == 2:
         a, b = 1.0, 1.0
-        Csur = (1 - np.cosh(theta_s * S))/(np.cosh(theta_s) - 1)
-        Cbot = np.sinh(theta_b * (S+1)) / np.sinh(theta_b) - 1
-        mu = (S+1)**a * (1 + (a/b)*(1-(S+1)**b))
-        return mu*Csur + (1-mu)*Cbot
+        Csur = (1 - np.cosh(theta_s * S)) / (np.cosh(theta_s) - 1)
+        Cbot = np.sinh(theta_b * (S + 1)) / np.sinh(theta_b) - 1
+        mu = (S + 1) ** a * (1 + (a / b) * (1 - (S + 1) ** b))
+        return mu * Csur + (1 - mu) * Cbot
 
     elif Vstretching == 4:
+        C = (1 - np.cosh(theta_s * S)) / (np.cosh(theta_s) - 1)
+        C = (np.exp(theta_b * C) - 1) / (1 - np.exp(-theta_b))
+        return C
+
+    elif Vstretching == 5:
+        if stagger == "rho":
+            K = np.arange(0.5, N)
+        else:
+            K = np.arange(N + 1)
+
+        S1 = (K * K - 2 * K * N + K + N * N - N) / (N * N - N)
+        S2 = (K * K - K * N) / (1 - N)
+        S = -S1 - 0.01 * S2
+
         C = (1 - np.cosh(theta_s * S)) / (np.cosh(theta_s) - 1)
         C = (np.exp(theta_b * C) - 1) / (1 - np.exp(-theta_b))
         return C
@@ -392,5 +414,4 @@ def s_stretch(N, theta_s, theta_b, stagger='rho', Vstretching=1):
 def s_stretch_w(N, theta_s, theta_b, Vstretching=1):
     """Obsolete use *s_stretch* instead"""
 
-    return s_stretch(N, theta_s, theta_b,
-                     stagger='w', Vstretching=Vstretching)
+    return s_stretch(N, theta_s, theta_b, stagger="w", Vstretching=Vstretching)

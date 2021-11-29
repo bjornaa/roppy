@@ -32,7 +32,7 @@ from roppy.sample import sample2D, bilin_inv
 
 
 class _Lazy(object):
-    """ Make lazy properties doing work only when and if needed"""
+    """Make lazy properties doing work only when and if needed"""
 
     # Recipe by Scott David Daniels
     # http://code.activestate.com/recipes/363602-lazy-property-evaluation/
@@ -46,6 +46,7 @@ class _Lazy(object):
         value = self._calculate(obj)
         setattr(obj, self._calculate.__name__, value)
         return value
+
 
 # ------------------------------
 
@@ -75,12 +76,11 @@ class SGrid(object):
 
     """
 
-    def __init__(self, ncid, subgrid=None, Vinfo=None, Vfile=None):
+    def __init__(self, ncid, subgrid=None, Vinfo=None):
 
         self.ncid = ncid
         self.subgrid = subgrid
         self._Vinfo = Vinfo
-        self._Vfile = Vfile
 
         self._init_horizontal()
         self._init_vertical()
@@ -89,7 +89,7 @@ class SGrid(object):
 
         # (sub-)grid limits
         # i0 <= i < i1, j0 <= j < j1
-        Mp, Lp = self.ncid.variables['h'].shape
+        Mp, Lp = self.ncid.variables["h"].shape
         if self.subgrid:
             i0 = self.subgrid[0]
             i1 = self.subgrid[1]
@@ -120,17 +120,17 @@ class SGrid(object):
             self.j0, self.j1 = 0, Mp
 
         # Shape of the grid
-        self.shape = (self.j1-self.j0, self.i1-self.i0)
+        self.shape = (self.j1 - self.j0, self.i1 - self.i0)
 
         # Slices for rho-points
         self.I = slice(self.i0, self.i1)
         self.J = slice(self.j0, self.j1)
 
         # U and V-points
-        i0_u = max(0, self.i0-1)
-        i1_u = min(self.i1, Lp-1)
-        j0_v = max(0, self.j0-1)
-        j1_v = min(self.j1, Mp-1)
+        i0_u = max(0, self.i0 - 1)
+        i1_u = min(self.i1, Lp - 1)
+        j0_v = max(0, self.j0 - 1)
+        j1_v = min(self.j1, Mp - 1)
         self.i0_u = i0_u
         self.j0_v = j0_v
         self.Iu = slice(i0_u, i1_u)
@@ -142,8 +142,8 @@ class SGrid(object):
         self.X = np.arange(self.i0, self.i1)
         self.Y = np.arange(self.j0, self.j1)
         # Grid cell boundaries = psi-points
-        self.Xb = np.arange(self.i0-0.5, self.i1)
-        self.Yb = np.arange(self.j0-0.5, self.j1)
+        self.Xb = np.arange(self.i0 - 0.5, self.i1)
+        self.Yb = np.arange(self.j0 - 0.5, self.j1)
 
     # ------------------------------------
 
@@ -162,51 +162,47 @@ class SGrid(object):
 
         self.vertical = True
 
-        if self._Vinfo:
+        if self._Vinfo:  # Explicitly given vertical info
             Vinfo = self._Vinfo
-            self.N = Vinfo['N']
-            self.hc = Vinfo['hc']
-            self.Vstretching = Vinfo.get('Vstretching', 1)
-            self.Vtransform = Vinfo.get('Vtransform', 1)
-            self.Cs_r = s_stretch(self.N, Vinfo['theta_s'], Vinfo['theta_b'],
-                                  stagger='rho', Vstretching=self.Vstretching)
-            self.Cs_w = s_stretch(self.N, Vinfo['theta_s'], Vinfo['theta_b'],
-                                  stagger='w', Vstretching=self.Vstretching)
+            self.N = Vinfo["N"]
+            self.hc = Vinfo["hc"]
+            self.Vstretching = Vinfo.get("Vstretching", 1)
+            self.Vtransform = Vinfo.get("Vtransform", 1)
+            self.Cs_r = s_stretch(
+                self.N,
+                Vinfo["theta_s"],
+                Vinfo["theta_b"],
+                stagger="rho",
+                Vstretching=self.Vstretching,
+            )
+            self.Cs_w = s_stretch(
+                self.N,
+                Vinfo["theta_s"],
+                Vinfo["theta_b"],
+                stagger="w",
+                Vstretching=self.Vstretching,
+            )
 
-        else:
+        else:  # Vertical info from the ROMS file
 
-            if self._Vfile:
-                f0 = Dataset(self._Vfile)  # separate file
-            else:
-                f0 = self.ncid       # use the file itself
+            f0 = self.ncid
 
             try:
-                self.hc = f0.variables['hc'].getValue()
+                self.hc = f0.variables["hc"].getValue()
+                self.Cs_r = f0.variables["Cs_r"][:]
+                self.Cs_w = f0.variables["Cs_w"][:]
             except KeyError:
                 # No vertical information, skip the rest
                 self.vertical = False
 
             if self.vertical:
-                self.Cs_r = f0.variables['Cs_r'][:]
-                self.Cs_w = f0.variables['Cs_w'][:]
 
                 # Vertical grid size
                 self.N = len(self.Cs_r)
 
                 # Vertical transform
-                self.Vtransform = 1  # Default
-                # Look for standard_name attribute of variable s_rho
-                try:
-                    v = f0.variables['s_rho']
-                    if v.standard_name[-1] == '2':
-                        self.Vtransform = 2
-                # No variable s_rho or no standard_name attribute
-                except (KeyError, RuntimeError):
-                    pass              # keep old default Vtransform = 1
-
-            # Close separate file
-            if self._Vfile:
-                f0.close()
+                self.Vtransfrom = f0.variables.get("Vtransform", 1)
+                self.Vstretching = f0.variables.get("Vstretching", 1)
 
     # --------------
     # Lazy reading
@@ -220,24 +216,27 @@ class SGrid(object):
     # def field(self):
     #     return self.ncid.variables['field'][self.J, self.I]
 
-    for _field in ['h', 'mask_rho', 'lon_rho', 'lat_rho',
-                   'pm', 'pn', 'angle', 'f']:
-        exec("%s = lambda self: self.ncid.variables['%s'][self.J, self.I]"
-             % (_field, _field))
+    for _field in ["h", "mask_rho", "lon_rho", "lat_rho", "pm", "pn", "angle", "f"]:
+        exec(
+            "%s = lambda self: self.ncid.variables['%s'][self.J, self.I]"
+            % (_field, _field)
+        )
         exec("%s = _Lazy(%s)" % (_field, _field))
 
     # 3D depth structure
     @_Lazy
     def z_r(self):
         if self.vertical:
-            return sdepth(self.h, self.hc, self.Cs_r,
-                          stagger='rho', Vtransform=self.Vtransform)
+            return sdepth(
+                self.h, self.hc, self.Cs_r, stagger="rho", Vtransform=self.Vtransform
+            )
 
     @_Lazy
     def z_w(self):
         if self.vertical:
-            return sdepth(self.h, self.hc, self.Cs_w,
-                          stagger='w', Vtransform=self.Vtransform)
+            return sdepth(
+                self.h, self.hc, self.Cs_w, stagger="w", Vtransform=self.Vtransform
+            )
 
     # ---------------------------------
     # Wrappers for romsutil functions
@@ -248,8 +247,10 @@ class SGrid(object):
             return zslice(F, self.z_r, -abs(z))
 
     def xy2ll(self, x, y):
-        return (sample2D(self.lon_rho, x-self.i0, y-self.j0),
-                sample2D(self.lat_rho, x-self.i0, y-self.j0))
+        return (
+            sample2D(self.lon_rho, x - self.i0, y - self.j0),
+            sample2D(self.lat_rho, x - self.i0, y - self.j0),
+        )
 
     def ll2xy(self, lon, lat):
         y, x = bilin_inv(lon, lat, self.lon_rho, self.lat_rho)
