@@ -362,16 +362,21 @@ def s_stretch(N, theta_s, theta_b, stagger="rho", Vstretching=1):
 
     *stagger* : "rho"|"w"
 
-    *Vstretching* : 1|2|4
+    *Vstretching* : 1|2|3|4|5
 
     """
 
+    # if stagger == "rho":
+    #     S = -1.0 + (0.5 + np.arange(N)) / N
+    # elif stagger == "w":
+    #     S = np.linspace(-1.0, 0.0, N + 1)
     if stagger == "rho":
-        S = -1.0 + (0.5 + np.arange(N)) / N
+        K = np.arange(0.5, N)
     elif stagger == "w":
-        S = np.linspace(-1.0, 0.0, N + 1)
+        K = np.arange(N + 1)
     else:
         raise ValueError("stagger must be 'rho' or 'w'")
+    S = -1 + K / N
 
     if Vstretching == 1:
         cff1 = 1.0 / np.sinh(theta_s)
@@ -387,16 +392,19 @@ def s_stretch(N, theta_s, theta_b, stagger="rho", Vstretching=1):
         mu = (S + 1) ** a * (1 + (a / b) * (1 - (S + 1) ** b))
         return mu * Csur + (1 - mu) * Cbot
 
+    elif Vstretching == 3:
+        gamma_ = 3.0
+        Csur = -np.log(np.cosh(gamma_ * (-S) ** theta_s)) / np.log(np.cosh(gamma_))
+        Cbot = np.log(np.cosh(gamma_ * (S + 1) ** theta_b)) / np.log(np.cosh(gamma_))
+        mu = 0.5 * (1 - np.tanh(gamma_ * (S + 0.5)))
+        return mu * Csur + (1 - mu) * Cbot
+
     elif Vstretching == 4:
         C = (1 - np.cosh(theta_s * S)) / (np.cosh(theta_s) - 1)
         C = (np.exp(theta_b * C) - 1) / (1 - np.exp(-theta_b))
         return C
 
     elif Vstretching == 5:
-        if stagger == "rho":
-            K = np.arange(0.5, N)
-        else:
-            K = np.arange(N + 1)
 
         S1 = (K * K - 2 * K * N + K + N * N - N) / (N * N - N)
         S2 = (K * K - K * N) / (1 - N)
