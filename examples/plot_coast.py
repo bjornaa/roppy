@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 # User settings
 # ---------------
 
-coastfile = 'data/coast.dat'
+coastfile = "data/coast.dat"
 
 # -----------
 # Read data
@@ -23,7 +23,7 @@ coastfile = 'data/coast.dat'
 X, Y = np.loadtxt(coastfile, unpack=True)
 
 # ---------------
-# Plot the data 
+# Plot the data
 # ---------------
 
 plt.fill(X, Y)

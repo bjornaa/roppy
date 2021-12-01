@@ -396,7 +396,9 @@ def s_stretch(N, theta_s, theta_b, stagger="rho", Vstretching=1):
         gamma_ = 3.0
         Csur = -np.log(np.cosh(gamma_ * (-S) ** theta_s)) / np.log(np.cosh(gamma_))
         # Csur = -np.log(np.cosh(gamma_ * np.abs(S) ** theta_s)) / np.log(np.cosh(gamma_))
-        Cbot = np.log(np.cosh(gamma_ * (S + 1) ** theta_b)) / np.log(np.cosh(gamma_)) - 1
+        Cbot = (
+            np.log(np.cosh(gamma_ * (S + 1) ** theta_b)) / np.log(np.cosh(gamma_)) - 1
+        )
         mu = 0.5 * (1 - np.tanh(gamma_ * (S + 0.5)))
         return mu * Csur + (1 - mu) * Cbot
 

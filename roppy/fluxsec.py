@@ -117,10 +117,11 @@ class FluxSection(object):
 
         I = self.I[:-1]
         J = self.J[:-1]
-        IU = I[self.Eu] - self.grid.i0
+
+        IU = I[self.Eu] - self.grid.i0 - 1 - ioff
         IV = I[self.Ev] - (1 + dirV) // 2 - self.grid.i0
         JU = J[self.Eu] - (1 - dirU) // 2 - self.grid.j0
-        JV = J[self.Ev] - self.grid.j0
+        JV = J[self.Ev] - self.grid.j0 - 1 - joff
 
         UVsec = np.empty((self.N, self.L))
         UVsec[:, self.Eu] = dirU * U[:, JU, IU]

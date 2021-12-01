@@ -30,10 +30,10 @@ from roppy.trajectories import curly_vectors
 # User settings
 # ------------------------
 
-ncfile = 'data/ocean_avg_example.nc'
+ncfile = "data/ocean_avg_example.nc"
 timeframe = 3  # Fourth time frame
 
-#subgrid = (1,-1,1,-1)  # whole grid except boundary cells
+# subgrid = (1,-1,1,-1)  # whole grid except boundary cells
 subgrid = (110, 170, 35, 90)
 
 # Distance between sperms
@@ -49,14 +49,14 @@ nstep = 10
 order = 4
 
 # Speed level (isotachs)
-#speedlevels = np.linspace(0, 1, 11)  # 0.0, 0.1, ...., 1.0
+# speedlevels = np.linspace(0, 1, 11)  # 0.0, 0.1, ...., 1.0
 speedlevels = np.linspace(0, 0.5, 6)  # 0.0, 0.1, ...., 0.5
 
 # Colormap for speed
-speedcolors = 'YlOrRd'
+speedcolors = "YlOrRd"
 
 # Color of spermplot
-spermcolor = 'black'
+spermcolor = "black"
 # spermcolor = 'blue'
 # spermcolor = 'white'  # Use white if speedcolors are dark
 
@@ -75,13 +75,13 @@ f = Dataset(ncfile)
 grid = SGrid(f, subgrid=subgrid)
 
 # Read surface current for the subgrid
-U = f.variables['u'][timeframe, -1, grid.Ju, grid.Iu]
-V = f.variables['v'][timeframe, -1, grid.Jv, grid.Iv]
+U = f.variables["u"][timeframe, -1, grid.Ju, grid.Iu]
+V = f.variables["v"][timeframe, -1, grid.Jv, grid.Iv]
 
-Mu = f.variables['mask_u'][grid.Ju, grid.Iu]
-Mv = f.variables['mask_v'][grid.Jv, grid.Iv]
+Mu = f.variables["mask_u"][grid.Ju, grid.Iu]
+Mv = f.variables["mask_v"][grid.Jv, grid.Iv]
 
-#f.close()
+# f.close()
 
 # ----------------------
 # Handle the data
@@ -92,35 +92,32 @@ U = Mu * U
 V = Mv * V
 
 # Compute the curly vectors
-X, Y = curly_vectors(grid, U, V, stride=stride,
-                     nstep=nstep, dt=dt, order=order)
+X, Y = curly_vectors(grid, U, V, stride=stride, nstep=nstep, dt=dt, order=order)
 
 # Compute the current speed
-U1 = 0.5*(U[:, :-1]+U[:, 1:])
-V1 = 0.5*(V[:-1, :]+V[1:, :])
-Speed = np.sqrt(U1*U1 + V1*V1)
+U1 = 0.5 * (U[:, :-1] + U[:, 1:])
+V1 = 0.5 * (V[:-1, :] + V[1:, :])
+Speed = np.sqrt(U1 * U1 + V1 * V1)
 
 # --------------------
 # Make the plot
 # --------------------
 
 # Contour plot of current speed
-plt.contourf(grid.X, grid.Y, Speed,
-             levels=speedlevels, cmap=speedcolors)
+plt.contourf(grid.X, grid.Y, Speed, levels=speedlevels, cmap=speedcolors)
 plt.colorbar()
 
 # Make the spermplot
 plt.plot(X, Y, color=spermcolor)
-plt.plot(X[-1, :], Y[-1, :],
-         linestyle='', marker='.', color=spermcolor)
+plt.plot(X[-1, :], Y[-1, :], linestyle="", marker=".", color=spermcolor)
 
 
 # Plot green land mask
-landmask(grid, 'green')
+landmask(grid, "green")
 
 # Set correct aspect ratio and axis limits
-plt.axis('image')
-plt.axis((grid.i0+0.5, grid.i1-1.5, grid.j0+0.5, grid.j1-1.5))
+plt.axis("image")
+plt.axis((grid.i0 + 0.5, grid.i1 - 1.5, grid.j0 + 0.5, grid.j1 - 1.5))
 
 # Display the plot
 plt.show()

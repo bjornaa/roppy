@@ -1,9 +1,6 @@
 import unittest
 import numpy as np
 
-import sys
-sys.path = ['..'] + sys.path
-
 from roppy.fluxsec import *
 
 # ------------------------------------------

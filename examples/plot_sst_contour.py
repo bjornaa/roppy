@@ -13,24 +13,24 @@
 # Imports
 # --------
 
-import numpy as np           
+import numpy as np
 import matplotlib.pyplot as plt
 from netCDF4 import Dataset
 
 # --------------
-# User settings 
+# User settings
 # --------------
 
-romsfile = './data/ocean_avg_example.nc'
-tstep  = 3              # 4-th time frame
+romsfile = "./data/ocean_avg_example.nc"
+tstep = 3  # 4-th time frame
 
 # -------------------
-# Extract the data 
+# Extract the data
 # -------------------
 
 fid = Dataset(romsfile)
-sst = fid.variables['temp'][tstep, -1,  :, :]
-M = fid.variables['mask_rho'][:, :]
+sst = fid.variables["temp"][tstep, -1, :, :]
+M = fid.variables["mask_rho"][:, :]
 fid.close()
 
 # --------------
@@ -42,7 +42,7 @@ fid.close()
 sst[M < 1] = np.NaN
 
 # -------------
-# Plot 
+# Plot
 # -------------
 
 # Contour plot with colorbar
@@ -50,6 +50,5 @@ plt.contourf(sst)
 plt.colorbar()
 
 # Plot with correct aspect ratio
-plt.axis('image')
+plt.axis("image")
 plt.show()
-

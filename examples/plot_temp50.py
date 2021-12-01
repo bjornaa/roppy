@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/env python
 
 # --------------------------------------------------
 # Plot temperature at 50 m, using the SGrid class
@@ -22,10 +22,10 @@ from roppy.mpl_util import landmask
 # User settings
 # -----------------
 
-roms_file = 'data/ocean_avg_example.nc'
-var = 'temp'                  # name of variable in NetCDF file
-tstep  = 3                    # 4th time step 
-depth  = 50                   # plot depth
+roms_file = "data/ocean_avg_example.nc"
+var = "temp"  # name of variable in NetCDF file
+tstep = 3  # 4th time step
+depth = 50  # plot depth
 
 # --------------------
 # Extract the data
@@ -38,7 +38,7 @@ grd = SGrid(fid)
 F = fid.variables[var][tstep, :, :, :]
 long_name = fid.variables[var].long_name
 
-#fid.close()
+# fid.close()
 
 # ------------------
 # Handle the data
@@ -49,7 +49,7 @@ F = grd.zslice(F, depth)
 
 # Mask away temperatures below bottom
 F = np.ma.masked_where(grd.h < abs(depth), F)  # numpy masked array
-#F[grd.h < depth] = np.nan 
+# F[grd.h < depth] = np.nan
 
 
 # ----------
@@ -63,18 +63,17 @@ plt.contourf(F)
 plt.colorbar(drawedges=1)
 
 # Draw black contour lines at the same isolevels
-plt.contour(F, colors='black')
+plt.contour(F, colors="black")
 
 # Plot the land mask in grey
 # Use keyword pcolor='pcolor' for savefig to eps or pdf
 landmask(grd)
-#landmask(grd, pcolor='pcolor')
+# landmask(grd, pcolor='pcolor')
 
 
 # Fix aspect ratio, so that grid cells  are squares
-plt.axis('image')
+plt.axis("image")
 
 # Display the plot
 plt.show()
-#plt.savefig('a.pdf')
-
+# plt.savefig('a.pdf')

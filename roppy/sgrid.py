@@ -19,7 +19,8 @@ Classes
 # -----------------------------------
 
 import numpy as np
-from netCDF4 import Dataset
+
+# from netCDF4 import Dataset
 
 from roppy.depth import sdepth, zslice, s_stretch
 from roppy.sample import sample2D, bilin_inv
@@ -58,10 +59,6 @@ class SGrid(object):
     Simple, minimal ROMS 3D grid object, for keeping important
     information together. Meant to be compatible with
     roms2soda's grdClass.
-
-    Note: Can not (yet) be initialized from a standard grd-file,
-    use initial, history or average file or supply extra vertical
-    information by Vinfo or Vfile.
 
     Typical usage::
 
@@ -150,15 +147,7 @@ class SGrid(object):
     def _init_vertical(self):
         """Init vertical structure"""
 
-        # Vinfo overrides Vfile overrides ncid
-        # if Vinfo:
-        #     use Vinfo
-        # elif Vfile:
-        #     use Vfile
-        # elif ncid has vertical structure
-        #     use ncid
-        # else
-        #     No vertical structure
+        # Vinfo overrides ncid
 
         self.vertical = True
 
@@ -201,7 +190,7 @@ class SGrid(object):
                 self.N = len(self.Cs_r)
 
                 # Vertical transform
-                self.Vtransfrom = f0.variables.get("Vtransform", 1)
+                self.Vtransform = f0.variables.get("Vtransform", 1)
                 self.Vstretching = f0.variables.get("Vstretching", 1)
 
     # --------------

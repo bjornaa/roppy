@@ -1,10 +1,9 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """Extract a closed coast line
 
 Extracts a coast line from GSHHS using the
-advanced polygon handling features in Basemap
+advanced polygon handling features in cartopy and shapely
 
 The polygons are saved to a two-columns
 text file, using Nans to sepatate the polygons.
@@ -17,58 +16,59 @@ plot filled land is given in pcoast.py
 # Bjørn Ådlandsvik <bjorn at imr.no>
 # Institute of Marine Research
 # 2014-10-12
+# 2021-12-01   # Moved from basemap to cartopy
 # ----------------------------------
 
 # ---------------
 # Imports
 # ---------------
 
-import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
+# from itertools import chain
+from shapely import geometry
+import cartopy.io.shapereader as shapereader
 
 # -----------------
 # User settings
 # -----------------
 
 # Geographical extent (should include all land in domain)
-lon0, lon1 = -12, 16      # Longitude range
-lat0, lat1 = 47, 66       # Latitude range
+lon0, lon1 = -12, 16  # Longitude range
+lat0, lat1 = 47, 66  # Latitude range
 
 # Choose GSHHS resolution
-res = 'i'  # intermediate resolution
+res = "i"  # intermediate resolution
+min_area = 0.01  # Minimum area of polygon to include
 
 # Output coast file
-outfile = 'data/coast.dat'
+outfile = "data/coast.dat"
 
-# ------------------------------
-# Set up Basemap map projection
-# ------------------------------
+# ---------------------------
 
-# Use cylindrical equidistand projection
-# i.e. x = lon, y = lat
-m = Basemap(projection = 'cyl',
-            llcrnrlon  = lon0,
-            llcrnrlat  = lat0,
-            urcrnrlon  = lon1,
-            urcrnrlat  = lat1,
-            resolution = res)
+# Global coastline from GSHHS as shapely collection generator
+path = shapereader.gshhs(scale=res)
+coast = shapereader.Reader(path).geometries()
 
-# ----------------------------
-# Get the coast polygon data
-# ----------------------------
+# Restrict the coastline to the regional domain
+bbox = geometry.box(lon0, lat0, lon1, lat1)
+coast0 = (bbox.intersection(p) for p in coast if bbox.intersects(p))
 
-polygons = []
-for i, p in enumerate(m.coastpolygons):
-    # Use only coast polygons (ignore lakes)
-    if m.coastpolygontypes[i] == 1:
-        polygons.append(p)
+# Make a list of the polygons in the intersection
+coast = []
+for p in coast0:
+    if isinstance(p, geometry.Polygon):
+        coast.append(p)
+    elif isinstance(p, geometry.MultiPolygon):
+        coast.extend(p.geoms)
+
+# Filter out very small islands
+coast = [p for p in coast if p.area >= min_area]
 
 # --------------------
 # Save the coast data
 # --------------------
 
-with open(outfile, 'w') as fid:
-    for p in polygons:                  # Loop over the polygons
-        for v in zip(*p):               # Loop over the vertices
-            fid.write('{:7.3f}{:7.3f}\n'.format(*v))
-        fid.write('    Nan    Nan\n')  # Separate the polygons
+with open(outfile, "w") as fid:
+    for p in coast:  # Loop over the polygons
+        for v in zip(*p.boundary.xy):  # Loop over the vertices
+            fid.write("{:7.3f}{:7.3f}\n".format(*v))
+        fid.write("    Nan    Nan\n")  # Separate the polygons
