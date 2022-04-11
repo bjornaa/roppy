@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
 """
+
+Main SGrid class in roppy
 
 Classes
 -------
@@ -29,10 +30,8 @@ from roppy.sample import sample2D, bilin_inv
 # Classes
 # ------------------------------------------------------
 
-# -------------------------------
 
-
-class _Lazy(object):
+class _Lazy:
     """Make lazy properties doing work only when and if needed"""
 
     # Recipe by Scott David Daniels
@@ -52,7 +51,7 @@ class _Lazy(object):
 # ------------------------------
 
 
-class SGrid(object):
+class SGrid:
 
     """Simple ROMS grid object
 
@@ -190,8 +189,15 @@ class SGrid(object):
                 self.N = len(self.Cs_r)
 
                 # Vertical transform
-                self.Vtransform = f0.variables.get("Vtransform", 1)
-                self.Vstretching = f0.variables.get("Vstretching", 1)
+                if f0.variables["Vtransform"] is not None:
+                    self.Vtransform = f0.variables["Vtransform"].getValue()
+                else:
+                    self.Vtransform = 1
+                if f0.variables["Vstretching"] is not None:
+                    self.Vstretching = f0.variables["Vstretching"].getValue()
+                else:
+                    self.Vstretching = 1
+
 
     # --------------
     # Lazy reading
