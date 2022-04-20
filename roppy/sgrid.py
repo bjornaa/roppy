@@ -189,11 +189,11 @@ class SGrid:
                 self.N = len(self.Cs_r)
 
                 # Vertical transform
-                if f0.variables["Vtransform"] is not None:
+                if "Vtransform" in f0.variables:
                     self.Vtransform = f0.variables["Vtransform"].getValue()
                 else:
                     self.Vtransform = 1
-                if f0.variables["Vstretching"] is not None:
+                if "Vstretching" in f0.variables:
                     self.Vstretching = f0.variables["Vstretching"].getValue()
                 else:
                     self.Vstretching = 1
