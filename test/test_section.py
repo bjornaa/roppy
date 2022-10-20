@@ -16,8 +16,11 @@ class MyGrid(object):
         # Depth = constant = 100 m
         self.h = 100.0 + np.zeros((jmax, imax))
         self.hc = 10.0
+        self.N = 9
         self.Cs_w = np.linspace(-1, 0, 10)
         self.Cs_r = self.Cs_w[1:] - self.Cs_w[:-1]
+        self.s_w = np.linspace(-1, 0, 10)
+        self.s_rho = self.Cs_r
         self.mask_rho = np.ones((jmax, imax))
         self.Vtransform = 1
         # dx = dy = 1000 m

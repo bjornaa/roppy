@@ -27,18 +27,21 @@ from __future__ import absolute_import, division
 import numpy as np
 
 
-def sdepth(H, Hc, C, stagger="rho", Vtransform=1):
+def sdepth(H, Hc, C, S=None, stagger="rho", Vtransform=1, Vstretching=None):
     """Depth of s-levels
 
     *H* : arraylike
-      Bottom depths [meter, positive]
+        Bottom depths [meter, positive]
 
     *Hc* : scalar
-       Critical depth
+        Critical depth
 
-    *cs_r* : 1D array
-       s-level stretching curve
+    *C* : 1D array
+        s-level stretching curve
 
+    *S* : 1D array
+        s coordinate at rho or w points
+        
     *stagger* : [ 'rho' | 'w' ]
 
     *Vtransform* : [ 1 | 2 ]
@@ -57,18 +60,28 @@ def sdepth(H, Hc, C, stagger="rho", Vtransform=1):
     >>> z_rho = sdepth(H, Hc, C)
 
     """
+
     H = np.asarray(H)
     Hshape = H.shape  # Save the shape of H
     H = H.ravel()  # and make H 1D for easy shape maniplation
     C = np.asarray(C)
-    N = len(C)
+    N = len(C) 
     outshape = (N,) + Hshape  # Shape of output
-    if stagger == "rho":
-        S = -1.0 + (0.5 + np.arange(N)) / N  # Unstretched coordinates
-    elif stagger == "w":
-        S = np.linspace(-1.0, 0.0, N)
-    else:
-        raise ValueError("stagger must be 'rho' or 'w'")
+
+    # Get S if not prescribed
+    if S is None:
+        if stagger == "rho":
+            K = np.arange(0.5, N)
+        elif stagger == "w":
+            K = np.arange(N)
+        else:
+            raise ValueError("stagger must be 'rho' or 'w'")
+        if Vstretching == 5:
+            S1 = (K * K - 2 * K * N + K + N * N - N) / (N * N - N)
+            S2 = (K * K - K * N) / (1 - N)
+            S = -S1 - 0.01 * S2
+        else: 
+            S = -1 + K / N
 
     if Vtransform == 1:  # Default transform by Song and Haidvogel
         A = Hc * (S - C)[:, None]

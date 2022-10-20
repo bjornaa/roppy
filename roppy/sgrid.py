@@ -184,7 +184,16 @@ class SGrid:
                 self.vertical = False
 
             if self.vertical:
-
+                self.Vstretching = f0.variables.get("Vstretching", None)
+                # Get S
+                try:
+                    self.s_rho = f0.variables["s_rho"][:]
+                    self.s_w = f0.variables["s_w"][:]
+                except KeyError: 
+                    # No S information on file
+                    self.s_rho = None
+                    self.s_w = None
+    
                 # Vertical grid size
                 self.N = len(self.Cs_r)
 
@@ -193,11 +202,7 @@ class SGrid:
                     self.Vtransform = f0.variables["Vtransform"].getValue()
                 else:
                     self.Vtransform = 1
-                if "Vstretching" in f0.variables:
-                    self.Vstretching = f0.variables["Vstretching"].getValue()
-                else:
-                    self.Vstretching = 1
-
+                
 
     # --------------
     # Lazy reading
@@ -223,14 +228,14 @@ class SGrid:
     def z_r(self):
         if self.vertical:
             return sdepth(
-                self.h, self.hc, self.Cs_r, stagger="rho", Vtransform=self.Vtransform
+                self.h, self.hc, self.Cs_r, self.s_rho, stagger="rho", Vtransform=self.Vtransform, Vstretching=self.Vstretching
             )
 
     @_Lazy
     def z_w(self):
         if self.vertical:
             return sdepth(
-                self.h, self.hc, self.Cs_w, stagger="w", Vtransform=self.Vtransform
+                self.h, self.hc, self.Cs_w, self.s_w, stagger="w", Vtransform=self.Vtransform, Vstretching=self.Vstretching
             )
 
     # ---------------------------------

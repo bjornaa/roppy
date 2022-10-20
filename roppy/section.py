@@ -62,6 +62,7 @@ class Section(object):
             self.h,
             self.grid.hc,
             self.grid.Cs_r,
+            self.grid.s_rho,
             stagger="rho",
             Vtransform=self.grid.Vtransform,
         )
@@ -69,6 +70,7 @@ class Section(object):
             self.h,
             self.grid.hc,
             self.grid.Cs_w,
+            self.grid.s_w,
             stagger="w",
             Vtransform=self.grid.Vtransform,
         )

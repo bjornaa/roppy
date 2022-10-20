@@ -16,8 +16,10 @@ class FakeGrid(object):
         self.hc = 10.0
         self.Cs_w = np.linspace(-1, 0, kmax+1)
         self.Cs_r = self.Cs_w[1:] - self.Cs_w[:-1]
+        self.s_w = np.linspace(-1, 0, kmax+1)
         self.mask_rho = np.ones((jmax, imax))     # No land
         self.Vtransform = 1
+        self.Vstretching = None
         # dx = dy = 1000 m
         self.pm = 0.001 + np.zeros((jmax, imax))
         self.pn = 0.001 + np.zeros((jmax, imax))

@@ -54,7 +54,7 @@ grd = SGrid(f0)
 # Make FluxSection objects
 
 for secname in sections:
-    print secname
+    print(secname)
     sec = sec_dict[secname]
     # End points in grid coordinates
     x0, y0 = grd.ll2xy(sec["lon0"], sec["lat0"])
@@ -71,7 +71,7 @@ for secname in sections:
 # Generate file list
 datafiles = glob.glob(os.path.join(datadir, datafile_format))
 datafiles.sort()
-print "Data files : ", datafiles
+print("Data files : ", datafiles)
 
 f = MFDataset(datafiles)
 # ntimes = len(f.dimensions['ocean_time'])

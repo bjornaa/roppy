@@ -22,12 +22,14 @@ Vstretching = 5
 
 # Depth profile, half Gaussian seamount, standard deviation =  ξmax / sqrt(8)
 H = Hmax - (Hmax - Hmin) * np.exp(-((2 * ξ / ξmax) ** 2))
+print(H.shape)
 
 # Compute the vertical stretching
 C = roppy.s_stretch(N, Θs, Θb, Vstretching=Vstretching)
+print(C.shape)
 
 # Compute the depth of the sigma levels
-S = roppy.sdepth(H, Hc, C, Vtransform=Vtransform)
+S = roppy.sdepth(H, Hc, C, Vtransform=Vtransform, Vstretching=Vstretching)
 
 # Plot the sigma levels
 for k in range(N):
