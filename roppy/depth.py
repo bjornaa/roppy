@@ -70,16 +70,12 @@ def sdepth(H, Hc, C, S=None, stagger="rho", Vtransform=1, Vstretching=None):
 
     # Get S if not prescribed
     if S is None:
-        if stagger == "rho":
-            K = np.arange(0.5, N)
-        elif stagger == "w":
+        if stagger == "w":
             K = np.arange(N)
         else:
-            raise ValueError("stagger must be 'rho' or 'w'")
+            K = np.arange(0.5, N)
         if Vstretching == 5:
-            S1 = (K * K - 2 * K * N + K + N * N - N) / (N * N - N)
-            S2 = (K * K - K * N) / (1 - N)
-            S = -S1 - 0.01 * S2
+            S = stretch5(N, stagger=stagger)
         else: 
             S = -1 + K / N
 
@@ -421,16 +417,25 @@ def s_stretch(N, theta_s, theta_b, stagger="rho", Vstretching=1):
         return C
 
     elif Vstretching == 5:
-        S1 = (K * K - 2 * K * N + K + N * N - N) / (N * N - N)
-        S2 = (K * K - K * N) / (1 - N)
-        S = -S1 - 0.01 * S2
-
+        S = stretch5(N, stagger=stagger)
         C = (1 - np.cosh(theta_s * S)) / (np.cosh(theta_s) - 1)
         C = (np.exp(theta_b * C) - 1) / (1 - np.exp(-theta_b))
         return C
 
     else:
         raise ValueError("Unknown Vstretching")
+
+
+def stretch5(N, stagger="rho"):
+    """Returns S for Vstretching = 5"""
+    if stagger == "w":
+        K = np.arange(N + 1)
+    else:  # Default, stagger = "rho"
+        K = np.arange(0.5, N)
+    S1 = (K * K - 2 * K * N + K + N * N - N) / (N * N - N)
+    S2 = (K * K - K * N) / (1 - N)
+    return -S1 - 0.01 * S2
+
 
 
 # wrapper for backwards compatibility
