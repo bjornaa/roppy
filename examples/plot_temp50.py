@@ -48,8 +48,7 @@ long_name = fid.variables[var].long_name
 F = grd.zslice(F, depth)
 
 # Mask away temperatures below bottom
-F = np.ma.masked_where(grd.h < abs(depth), F)  # numpy masked array
-# F[grd.h < depth] = np.nan
+F[grd.h < depth] = np.nan
 
 
 # ----------

@@ -74,6 +74,8 @@ class SGrid:
 
     def __init__(self, ncid, subgrid=None, Vinfo=None):
 
+        ncid.set_auto_mask(False)  # Avoid masked arrays
+
         self.ncid = ncid
         self.subgrid = subgrid
         self._Vinfo = Vinfo
@@ -189,11 +191,11 @@ class SGrid:
                 try:
                     self.s_rho = f0.variables["s_rho"][:]
                     self.s_w = f0.variables["s_w"][:]
-                except KeyError: 
+                except KeyError:
                     # No S information on file
                     self.s_rho = None
                     self.s_w = None
-    
+
                 # Vertical grid size
                 self.N = len(self.Cs_r)
 
@@ -202,7 +204,6 @@ class SGrid:
                     self.Vtransform = f0.variables["Vtransform"].getValue()
                 else:
                     self.Vtransform = 1
-                
 
     # --------------
     # Lazy reading
@@ -228,14 +229,26 @@ class SGrid:
     def z_r(self):
         if self.vertical:
             return sdepth(
-                self.h, self.hc, self.Cs_r, self.s_rho, stagger="rho", Vtransform=self.Vtransform, Vstretching=self.Vstretching
+                self.h,
+                self.hc,
+                self.Cs_r,
+                self.s_rho,
+                stagger="rho",
+                Vtransform=self.Vtransform,
+                Vstretching=self.Vstretching,
             )
 
     @_Lazy
     def z_w(self):
         if self.vertical:
             return sdepth(
-                self.h, self.hc, self.Cs_w, self.s_w, stagger="w", Vtransform=self.Vtransform, Vstretching=self.Vstretching
+                self.h,
+                self.hc,
+                self.Cs_w,
+                self.s_w,
+                stagger="w",
+                Vtransform=self.Vtransform,
+                Vstretching=self.Vstretching,
             )
 
     # ---------------------------------
