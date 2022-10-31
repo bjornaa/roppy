@@ -21,15 +21,20 @@ Horizontal sampling
 # 2010-09-30
 # -----------------------------------
 
-from __future__ import division
+from typing import Optional, Union
 
-import datetime
+# import datetime
 import numpy as np
+from numpy.typing import NDArray
 
 # ---------------------
 
+Array = Union[NDArray[np.float64], float]
 
-def sample2D2(F, X, Y):
+
+def sample2D2(
+    F: NDArray[np.float64], X: Array, Y: Array
+) -> Array:
     """Bilinear sample of a 2D field
 
     *F* : 2D array
@@ -55,8 +60,8 @@ def sample2D2(F, X, Y):
         Y0 = Y + np.zeros_like(Z)
         I = X0.astype("int")
         J = Y0.astype("int")
-        P = X0 - I
-        Q = Y0 - J
+        P = X0 - I  # type: ignore
+        Q = Y0 - J  # type: ignore
 
     W00 = (1 - P) * (1 - Q)
     W01 = (1 - P) * Q
@@ -83,7 +88,12 @@ def sample2DV(F, X, Y):
 # -------------------------------------------------
 
 
-def sample2D_masked(F, M, X, Y):
+def sample2D_masked(
+    F: NDArray[np.float64],
+    M: NDArray[np.float64],
+    X: Array,
+    Y: Array,
+) -> Array:
     """Bilinar sample of a 2D field
 
     F = 2D array, M = mask (=1 on sea, = 0 on land)
@@ -136,7 +146,14 @@ def sample2D_masked(F, M, X, Y):
 # ------------------
 
 
-def sample2D(F, X, Y, mask=None, undef_value=0.0, outside_value=None):
+def sample2D(
+    F: NDArray[np.float64],
+    X: Array,
+    Y: Array,
+    mask: Optional[NDArray[np.float64]] = None,
+    undef_value: float = 0.0,
+    outside_value: Optional[float] = None,
+) -> Array:
     """Bilinear sample of a 2D field
 
     *F* : 2D array, shape = (jmax, imax)

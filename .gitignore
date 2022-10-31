@@ -1,9 +1,13 @@
 # Emacs backup
 *~
 
+# VS code
+.vscode/*
+
 # Python compile and build
 *.pyc
 build/*
+roppy.egg-info/*
 
 # Documentation, compile and build
 doc/_build

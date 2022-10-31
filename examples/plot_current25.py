@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 from netCDF4 import Dataset
 from roppy import SGrid
 from roppy.mpl_util import landmask
-from roppy.trajectories import curly_vectors
 
 # -------------------------
 # User settings

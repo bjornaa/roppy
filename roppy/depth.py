@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Vertical structure functions for ROMS
 
 :func:`sdepth`
@@ -22,12 +20,23 @@
 # 2010-09-30
 # -----------------------------------
 
-from __future__ import absolute_import, division
+from typing import Optional, Union
 
 import numpy as np
+from numpy.typing import NDArray
+
+Array = Union[NDArray[np.float64], float]
 
 
-def sdepth(H, Hc, C, S=None, stagger="rho", Vtransform=1, Vstretching=None):
+def sdepth(
+    H: NDArray[np.float64],
+    Hc: float,
+    C: NDArray[np.float64],
+    S: Optional[NDArray[np.float64]] = None,
+    stagger: str = "rho",
+    Vtransform: int = 1,
+    Vstretching: int = 1,
+) -> NDArray[np.float64]:
     """Depth of s-levels
 
     *H* : arraylike
@@ -41,7 +50,7 @@ def sdepth(H, Hc, C, S=None, stagger="rho", Vtransform=1, Vstretching=None):
 
     *S* : 1D array
         s coordinate at rho or w points
-        
+
     *stagger* : [ 'rho' | 'w' ]
 
     *Vtransform* : [ 1 | 2 ]
@@ -65,18 +74,18 @@ def sdepth(H, Hc, C, S=None, stagger="rho", Vtransform=1, Vstretching=None):
     Hshape = H.shape  # Save the shape of H
     H = H.ravel()  # and make H 1D for easy shape maniplation
     C = np.asarray(C)
-    N = len(C) 
+    N = len(C)
     outshape = (N,) + Hshape  # Shape of output
 
     # Get S if not prescribed
     if S is None:
         if stagger == "w":
-            K = np.arange(N)
+            K = np.arange(N, dtype=np.float64)
         else:
             K = np.arange(0.5, N)
         if Vstretching == 5:
             S = stretch5(N, stagger=stagger)
-        else: 
+        else:
             S = -1 + K / N
 
     if Vtransform == 1:  # Default transform by Song and Haidvogel
@@ -85,9 +94,9 @@ def sdepth(H, Hc, C, S=None, stagger="rho", Vtransform=1, Vstretching=None):
         return (A + B).reshape(outshape)
 
     elif Vtransform == 2:  # New transform by Shchepetkin
-        N = Hc * S[:, None] + np.outer(C, H)
-        D = 1.0 + Hc / H
-        return (N / D).reshape(outshape)
+        Nom = Hc * S[:, None] + np.outer(C, H)
+        Denom = 1.0 + Hc / H
+        return (Nom / Denom).reshape(outshape)
 
     else:
         raise ValueError("Unknown Vtransform")
@@ -111,7 +120,7 @@ def sdepth_w(H, Hc, cs_w):
 # ------------------------------------------
 
 
-def zslice(F, S, z):
+def zslice(F: NDArray[np.float64], S: NDArray[np.float64], z: Array) -> NDArray[np.float64]:
     """Vertical slice of a 3D ROMS field
 
     Vertical interpolation of a field in s-coordinates to
@@ -119,7 +128,8 @@ def zslice(F, S, z):
 
     *F* : array with vertical profiles, first dimension is vertical
 
-    *S* : array with depths of the F-values,
+    *S* : array with depths of the F-values, S.shape = F.shape
+          typically, S = z_rho or S = z_w
 
     *z* : Depth level(s) for output, scalar or ``shape = F.shape[1:]``
           The z values should be negative
@@ -360,7 +370,9 @@ def z_average(F, z_r, z0, z1):
 # ----------------------------------
 
 
-def s_stretch(N, theta_s, theta_b, stagger="rho", Vstretching=1):
+def s_stretch(
+    N: int, theta_s: float, theta_b: float, stagger: str = "rho", Vstretching: int = 1
+) -> NDArray[np.float64]:
     """Compute a s-level stretching array
 
     *N* : Number of vertical levels
@@ -375,14 +387,10 @@ def s_stretch(N, theta_s, theta_b, stagger="rho", Vstretching=1):
 
     """
 
-    # if stagger == "rho":
-    #     S = -1.0 + (0.5 + np.arange(N)) / N
-    # elif stagger == "w":
-    #     S = np.linspace(-1.0, 0.0, N + 1)
     if stagger == "rho":
         K = np.arange(0.5, N)
     elif stagger == "w":
-        K = np.arange(N + 1)
+        K = np.arange(N + 1, dtype=np.float64)
     else:
         raise ValueError("stagger must be 'rho' or 'w'")
     S = -1 + K / N
@@ -426,16 +434,15 @@ def s_stretch(N, theta_s, theta_b, stagger="rho", Vstretching=1):
         raise ValueError("Unknown Vstretching")
 
 
-def stretch5(N, stagger="rho"):
+def stretch5(N: int, stagger: str = "rho") -> NDArray:
     """Returns S for Vstretching = 5"""
     if stagger == "w":
-        K = np.arange(N + 1)
+        K = np.arange(N + 1, dtype=np.float64)
     else:  # Default, stagger = "rho"
         K = np.arange(0.5, N)
     S1 = (K * K - 2 * K * N + K + N * N - N) / (N * N - N)
     S2 = (K * K - K * N) / (1 - N)
     return -S1 - 0.01 * S2
-
 
 
 # wrapper for backwards compatibility

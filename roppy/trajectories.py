@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # ------------------------------
 # trajectories.py
 #
@@ -38,7 +36,7 @@ def movepart(grid, U, V, X0, Y0, dt, nstep, order=4):
     Domain is limited by: i0 <= x < i1-1 and j0 <= y < j1-1
     Particles outside the domain are not moved
     """
-    i0, i1, j0, j1 = grid.i0, grid.i1, grid.j0, grid.j1
+    i0, j0 = grid.i0, grid.j0
 
     # Initalize
     X = np.zeros((nstep, len(X0)))

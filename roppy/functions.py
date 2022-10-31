@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Functions computing derived quantities from ROMS output"""
 
 

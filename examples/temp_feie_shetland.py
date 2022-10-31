@@ -35,7 +35,7 @@ temp_sec = sec.sample3D(temp)
 # Compute mean temperature along section
 # using trapezoidal integration
 
-print(f"mean tempeature = {np.sum(sec.Area * temp_sec) / np.sum(sec.Area):5.2f}")
+print(f"mean temperature = {np.sum(sec.Area * temp_sec) / np.sum(sec.Area):5.2f}")
 
 # TODO: Make a mean method in the Section class
 #   Usage: sec.mean(temp_sec)

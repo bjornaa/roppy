@@ -19,12 +19,13 @@ Classes
 # 2010-09-30
 # -----------------------------------
 
+from typing import Optional, Tuple, Mapping, Any
+
 import numpy as np
-
-# from netCDF4 import Dataset
-
+from numpy.typing import NDArray
+from netCDF4 import Dataset  # type: ignore
 from roppy.depth import sdepth, zslice, s_stretch
-from roppy.sample import sample2D, bilin_inv
+from roppy.sample import sample2D, bilin_inv, Array
 
 # ------------------------------------------------------
 # Classes
@@ -61,18 +62,23 @@ class SGrid:
 
     Typical usage::
 
-    >>> fid = Dataset(roms_file)
-    >>> grd = SGrid(fid)
+    >>> ncid = Dataset(roms_file)
+    >>> grd = SGrid(ncid)
 
     More arguments::
 
-    >>> fid = Dataset(roms_file)
-    >>> Vinfo = {'N' : 32, 'hc' : 10, 'theta_s' : 0.8, 'theta_b' : 0.4}
-    >>> grd = SGrid(fid, subgrid=(100, 121, 60, 161), Vinfo=Vinfo)
+    >>> ncid = Dataset(roms_file)
+    >>> Vinfo = dict(N=32, hc=10, theta_s=0.8, theta_b=0.4, Vtransform=2, Vstretching=4)
+    >>> grd = SGrid(ncid, subgrid=(100, 121, 60, 161), Vinfo=Vinfo)
 
     """
 
-    def __init__(self, ncid, subgrid=None, Vinfo=None):
+    def __init__(
+        self,
+        ncid: Dataset,
+        subgrid: Optional[Tuple[int, int, int, int]] = None,
+        Vinfo: Optional[Mapping[str, Any]] = None,
+    ):
 
         ncid.set_auto_mask(False)  # Avoid masked arrays
 
@@ -83,7 +89,7 @@ class SGrid:
         self._init_horizontal()
         self._init_vertical()
 
-    def _init_horizontal(self):
+    def _init_horizontal(self) -> None:
 
         # (sub-)grid limits
         # i0 <= i < i1, j0 <= j < j1
@@ -145,7 +151,7 @@ class SGrid:
 
     # ------------------------------------
 
-    def _init_vertical(self):
+    def _init_vertical(self) -> None:
         """Init vertical structure"""
 
         # Vinfo overrides ncid
@@ -229,7 +235,7 @@ class SGrid:
     def z_r(self):
         if self.vertical:
             return sdepth(
-                self.h,
+                self.h,  # type: ignore
                 self.hc,
                 self.Cs_r,
                 self.s_rho,
@@ -242,7 +248,7 @@ class SGrid:
     def z_w(self):
         if self.vertical:
             return sdepth(
-                self.h,
+                self.h,  # type: ignore
                 self.hc,
                 self.Cs_w,
                 self.s_w,
@@ -255,16 +261,24 @@ class SGrid:
     # Wrappers for romsutil functions
     # ---------------------------------
 
-    def zslice(self, F, z):
-        if self.vertical:
-            return zslice(F, self.z_r, -abs(z))
+    def zslice(self, F: NDArray[np.float64], z: Array) -> NDArray[np.float64]:
+        # Raises NameError if no vertical structure, handle better
+        return zslice(F, self.z_r, -abs(z))  # type: ignore
 
-    def xy2ll(self, x, y):
+    def zslice2(
+        self, F: NDArray[np.float64], z: Array
+    ) -> Optional[NDArray[np.float64]]:
+        if self.vertical:
+            return zslice(F, self.z_r, -abs(z))  # type: ignore
+        else:
+            return None
+
+    def xy2ll(self, x: Array, y: Array) -> Tuple[Array, Array]:
         return (
-            sample2D(self.lon_rho, x - self.i0, y - self.j0),
-            sample2D(self.lat_rho, x - self.i0, y - self.j0),
+            sample2D(self.lon_rho, x - self.i0, y - self.j0),  # type: ignore
+            sample2D(self.lat_rho, x - self.i0, y - self.j0),  # type: ignore
         )
 
-    def ll2xy(self, lon, lat):
-        y, x = bilin_inv(lon, lat, self.lon_rho, self.lat_rho)
+    def ll2xy(self, lon: Array, lat: Array) -> Tuple[Array, Array]:
+        y, x = bilin_inv(lon, lat, self.lon_rho, self.lat_rho)  # type: ignore
         return x + self.i0, y + self.j0

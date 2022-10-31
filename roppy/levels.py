@@ -23,9 +23,10 @@ This module has utility functions for handling nice numbers,
 # ----------------------------------
 
 import math
+from typing import List
 
 
-def nice(v):
+def nice(v: float) -> float:
     """Returns nearest nice number
 
     Give highest value if equally close to two nice numbers
@@ -47,7 +48,7 @@ def nice(v):
 
 # Alternative (and slower) version
 # Gives lover value if equally close to two nice numbers
-def nice2(v):
+def nice2(v: float) -> float:
     e = math.floor(math.log10(v))
     B = [
         10 ** e,
@@ -62,7 +63,7 @@ def nice2(v):
     return B[i0]
 
 
-def nice_levels(fmin, fmax, n=6):
+def nice_levels(fmin: float, fmax: float, n: int = 6) -> List[float]:
     """Returns approx. n nice equidistant levels between fmin and fmax
 
     arguments:

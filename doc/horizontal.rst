@@ -46,6 +46,7 @@ subgrid definition::
 
 The grid variables are then restricted to the subgrid making the
 following statements equivalent::
+
   fid.variables['h'][j0:j1,i0:i1]   
   grd.h
 
@@ -93,7 +94,7 @@ Using SGrid the temperature at 50 meter depth is given as::
 
 [sjekk at roppy gjør dette, hvis ikke fiks det]
 
-[**Flytt til kapittel om utilities]
+[**Flytt til kapittel om utilities**]
 The romsutil toolbox in roppy offers low-level utilities for
 performing this task::
 
@@ -254,7 +255,7 @@ then done by::
 
 The final plot looks like this
 
-.. plot:: pyplots/plot_topo.py
+.. plot:: ../examples/plot_topo.py
 
 
   
