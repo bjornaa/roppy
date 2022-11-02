@@ -25,19 +25,21 @@ Function overview
 # 2010-01-05
 # -----------------------------------
 
-from __future__ import print_function, division, absolute_import, unicode_literals
+from typing import Tuple
 
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
+Colormap = mpl.colors.Colormap
+Colornorm = mpl.colors.Normalize
 
 # ------------------
 # Plot land mask
 # ------------------
 
 
-def landmask(grd, color="0.8", pcolor="pcolormesh"):
+def landmask(grd, color="0.8", pcolor="pcolormesh") -> None:
     """Make a land mask, constant colour
 
     *grd* : An *SGrid* instance or a ROMS *mask_rho* array
@@ -60,9 +62,15 @@ def landmask(grd, color="0.8", pcolor="pcolormesh"):
     # Make a constant colormap, default = grey
     constmap = plt.matplotlib.colors.ListedColormap([color])
 
-    M = grd.mask_rho
-    X = grd.Xb
-    Y = grd.Yb
+    if isinstance(grd, np.ndarray):
+        M = grd
+        jmax, imax = M.shape
+        X = np.arange(-0.5, imax)
+        Y = np.arange(-0.5, jmax)
+    else:  # grd is a roppy.SGrid instance
+        M = grd.mask_rho
+        X = grd.Xb
+        Y = grd.Yb
 
     # Draw the mask by pcolor
     M = np.ma.masked_where(M > 0, M)
@@ -79,7 +87,7 @@ def landmask(grd, color="0.8", pcolor="pcolormesh"):
 # -------------
 
 # Colormap, smlgn. med Rob Hetland
-def LevelColormap(levels, cmap=None, reverse=False):
+def LevelColormap(levels, cmap=None, reverse=False) -> Colormap:
     """Make a colormap based on an increasing sequence of levels
 
     *levels* : increasing sequence
@@ -125,7 +133,9 @@ def LevelColormap(levels, cmap=None, reverse=False):
 # -------------------
 
 
-def levelmap(L, cmap=None, reverse=False, extend="neither"):
+def levelmap(
+    L, cmap=None, reverse=False, extend="neither"
+) -> Tuple[Colormap, Colornorm]:
     """Make colormap and normalization from a sequence of levels
 
     *L* : increasing sequence of levels

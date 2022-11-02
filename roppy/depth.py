@@ -120,7 +120,9 @@ def sdepth_w(H, Hc, cs_w):
 # ------------------------------------------
 
 
-def zslice(F: NDArray[np.float64], S: NDArray[np.float64], z: Array) -> NDArray[np.float64]:
+def zslice(
+    F: NDArray[np.float64], S: NDArray[np.float64], z: Array
+) -> NDArray[np.float64]:
     """Vertical slice of a 3D ROMS field
 
     Vertical interpolation of a field in s-coordinates to

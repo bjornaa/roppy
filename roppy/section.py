@@ -58,7 +58,7 @@ class Section:
 
         # Vertical structure
         self.z_r = sdepth(
-            self.h,   # type: ignore
+            self.h,  # type: ignore
             self.grid.hc,
             self.grid.Cs_r,
             self.grid.s_rho,
@@ -66,7 +66,7 @@ class Section:
             Vtransform=self.grid.Vtransform,
         )
         self.z_w = sdepth(
-            self.h,    # type: ignore
+            self.h,  # type: ignore
             self.grid.hc,
             self.grid.Cs_w,
             self.grid.s_w,

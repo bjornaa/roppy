@@ -80,7 +80,7 @@ class FluxSection(object):
             self.grid.s_w,
             stagger="w",
             Vtransform=self.grid.Vtransform,
-            Vstretching = self.grid.Vstretching,
+            Vstretching=self.grid.Vstretching,
         )
         self.dZ = self.z_w[1:, :] - self.z_w[:-1, :]
         self.dSdZ = self.dS * self.dZ

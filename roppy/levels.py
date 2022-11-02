@@ -33,7 +33,7 @@ def nice(v: float) -> float:
 
     """
     e = math.floor(math.log10(v))  # Exponent
-    b = v / 10 ** e
+    b = v / 10**e
     if b < 1.5:
         a = 1
     elif b < 3.5:
@@ -42,7 +42,7 @@ def nice(v: float) -> float:
         a = 5
     else:
         a = 10
-    d = a * 10 ** e
+    d = a * 10**e
     return d
 
 
@@ -51,13 +51,13 @@ def nice(v: float) -> float:
 def nice2(v: float) -> float:
     e = math.floor(math.log10(v))
     B = [
-        10 ** e,
-        2 * 10 ** e,
-        5 * 10 ** e,
-        10 * 10 ** e,
-        20 * 10 ** e,
-        50 * 10 ** e,
-        100 * 10 ** e,
+        10**e,
+        2 * 10**e,
+        5 * 10**e,
+        10 * 10**e,
+        20 * 10**e,
+        50 * 10**e,
+        100 * 10**e,
     ]
     d0, i0 = min([(abs(b - v), i) for i, b in enumerate(B)])
     return B[i0]
@@ -78,7 +78,7 @@ def nice_levels(fmin: float, fmax: float, n: int = 6) -> List[float]:
 
     l0-d < fmin <= l0 = L[0] and L[-1] = l0+(m-1)*d <= fmax < l0 + m*d
 
-    with m approximately equal to m
+    with m approximately equal to n
 
     """
 

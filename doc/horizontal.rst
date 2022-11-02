@@ -229,7 +229,7 @@ Land mask
 
 
 
-Topography and LevelColormap
+Topography and levelmap
 ----------------------------
 
 The simple example above showed how to plot a 2D field such as
@@ -240,18 +240,19 @@ sequence of iso-levels::
   L = [10,25,50,100,250,500,1000,2500,5000]
 
 However, using a simple *contourf* function with these levels still
-hides all shallow details in the blue end of the colour map.
-The `mpl_util` module has a function *LevelColormap* for to fix this.
+hides all shallow details in one end of the colour map.
+The `mpl_util` module has a function *levelmap* to fix this.
 The call::
 
-  LevelColormap(L)
+  levelmap(L)
 
-returns a colormap spreading the whole spectrum evenly on the choosen
-levels. An keyword argument can be used to reverse the colormap,
-for instance to have the deepest ocean in blue. The contour plot is
+returns a colormap and a normalization spreading the whole colour spectrum
+evenly on the choosen levels. An keyword argument can be used to reverse the
+colormap, for instance to have the deepest ocean in blue. The contour plot is
 then done by::
 
-  plt.contourf(H, levels=L, cmap=LevelColormap(L, reverse=True))
+  cmap, norm = roppy.levelmap(L, extend="both", reverse=True)
+  plt.contourf(grd.h, levels=L, cmap=cmap, norm=norm, extend="both")
 
 The final plot looks like this
 

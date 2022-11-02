@@ -32,9 +32,7 @@ from numpy.typing import NDArray
 Array = Union[NDArray[np.float64], float]
 
 
-def sample2D2(
-    F: NDArray[np.float64], X: Array, Y: Array
-) -> Array:
+def sample2D2(F: NDArray[np.float64], X: Array, Y: Array) -> Array:
     """Bilinear sample of a 2D field
 
     *F* : 2D array
