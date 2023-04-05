@@ -74,13 +74,19 @@ def sdepth(
     Hshape = H.shape  # Save the shape of H
     H = H.ravel()  # and make H 1D for easy shape maniplation
     C = np.asarray(C)
-    N = len(C)
-    outshape = (N,) + Hshape  # Shape of output
+    if stagger == "rho":
+        N = len(C)
+        outshape = (N,) + Hshape
+    elif stagger == "w":
+        N = len(C) - 1
+        outshape = (N + 1,) + Hshape
+    else:
+        raise ValueError("Stagger must be 'rho' (default) or 'w'")
 
     # Get S if not prescribed
     if S is None:
         if stagger == "w":
-            K = np.arange(N, dtype=np.float64)
+            K = np.arange(N + 1, dtype=np.float64)  #### Endret
         else:
             K = np.arange(0.5, N)
         if Vstretching == 5:
@@ -202,7 +208,6 @@ def zslice(
 
 
 def multi_zslice(F, S, Z):
-
     """Slice a 3D ROMS field to fixed depth
 
     Vertical interpolation of a field in s-coordinates to
