@@ -1,13 +1,13 @@
-# -*- coding: utf-8 -*-
+from __future__ import annotations
 
-from __future__ import absolute_import
 
 import numpy as np
-from roppy.sample import sample2D, sample2DU, sample2DV
+
 from roppy.depth import sdepth
+from roppy.sample import sample2D
 
 
-class Section(object):
+class Section:
     """Class for handling sections in a ROMS grid
 
     The grid is defined by a grid object having attributes
@@ -20,8 +20,7 @@ class Section(object):
 
     """
 
-    def __init__(self, grid, X, Y):
-
+    def __init__(self, grid, X, Y) -> None:
         self.grid = grid
         # Vertices, in subgrid coordinates
         self.X = X - grid.i0
@@ -63,14 +62,14 @@ class Section(object):
 
         # Vertical structure
         self.z_r = sdepth(
-            self.h,
+            self.h,  # type: ignore
             self.grid.hc,
             self.grid.Cs_r,
             stagger="rho",
             Vtransform=self.grid.Vtransform,
         )
         self.z_w = sdepth(
-            self.h,
+            self.h,  # type: ignore
             self.grid.hc,
             self.grid.Cs_w,
             stagger="w",

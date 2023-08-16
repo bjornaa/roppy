@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 levels.py
 
@@ -23,7 +21,6 @@ This module has utility functions for handling nice numbers,
 # ----------------------------------
 
 import math
-from typing import List
 
 
 def nice(v: float) -> float:
@@ -42,28 +39,11 @@ def nice(v: float) -> float:
         a = 5
     else:
         a = 10
-    d = a * 10**e
+    d = a * 10.0**e
     return d
 
 
-# Alternative (and slower) version
-# Gives lover value if equally close to two nice numbers
-def nice2(v: float) -> float:
-    e = math.floor(math.log10(v))
-    B = [
-        10**e,
-        2 * 10**e,
-        5 * 10**e,
-        10 * 10**e,
-        20 * 10**e,
-        50 * 10**e,
-        100 * 10**e,
-    ]
-    d0, i0 = min([(abs(b - v), i) for i, b in enumerate(B)])
-    return B[i0]
-
-
-def nice_levels(fmin: float, fmax: float, n: int = 6) -> List[float]:
+def nice_levels(fmin: float, fmax: float, n: int = 6) -> list[float]:
     """Returns approx. n nice equidistant levels between fmin and fmax
 
     arguments:

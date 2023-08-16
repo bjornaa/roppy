@@ -19,13 +19,21 @@ Classes
 # 2010-09-30
 # -----------------------------------
 
-from typing import Optional, Tuple, Mapping, Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Optional
 
 import numpy as np
-from numpy.typing import NDArray
 from netCDF4 import Dataset  # type: ignore
-from roppy.depth import sdepth, zslice, s_stretch
-from roppy.sample import sample2D, bilin_inv, Array
+
+from roppy.depth import s_stretch, sdepth, zslice
+from roppy.sample import Array, bilin_inv, sample2D
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from numpy.typing import NDArray
+
 
 # ------------------------------------------------------
 # Classes
@@ -38,7 +46,7 @@ class _Lazy:
     # Recipe by Scott David Daniels
     # http://code.activestate.com/recipes/363602-lazy-property-evaluation/
 
-    def __init__(self, calculate_function):
+    def __init__(self, calculate_function) -> None:
         self._calculate = calculate_function
 
     def __get__(self, obj, _=None):
@@ -76,10 +84,9 @@ class SGrid:
     def __init__(
         self,
         ncid: Dataset,
-        subgrid: Optional[Tuple[int, int, int, int]] = None,
+        subgrid: Optional[tuple[int, int, int, int]] = None,
         Vinfo: Optional[Mapping[str, Any]] = None,
     ):
-
         ncid.set_auto_mask(False)  # Avoid masked arrays
 
         self.ncid = ncid
@@ -90,7 +97,6 @@ class SGrid:
         self._init_vertical()
 
     def _init_horizontal(self) -> None:
-
         # (sub-)grid limits
         # i0 <= i < i1, j0 <= j < j1
         Mp, Lp = self.ncid.variables["h"].shape
@@ -180,7 +186,6 @@ class SGrid:
             )
 
         else:  # Vertical info from the ROMS file
-
             f0 = self.ncid
 
             try:
@@ -228,7 +233,7 @@ class SGrid:
             "%s = lambda self: self.ncid.variables['%s'][self.J, self.I]"
             % (_field, _field)
         )
-        exec("%s = _Lazy(%s)" % (_field, _field))
+        exec(f"{_field} = _Lazy({_field})")
 
     # 3D depth structure
     @_Lazy
@@ -273,12 +278,12 @@ class SGrid:
         else:
             return None
 
-    def xy2ll(self, x: Array, y: Array) -> Tuple[Array, Array]:
+    def xy2ll(self, x: Array, y: Array) -> tuple[Array, Array]:
         return (
             sample2D(self.lon_rho, x - self.i0, y - self.j0),  # type: ignore
             sample2D(self.lat_rho, x - self.i0, y - self.j0),  # type: ignore
         )
 
-    def ll2xy(self, lon: Array, lat: Array) -> Tuple[Array, Array]:
+    def ll2xy(self, lon: Array, lat: Array) -> tuple[Array, Array]:
         y, x = bilin_inv(lon, lat, self.lon_rho, self.lat_rho)  # type: ignore
         return x + self.i0, y + self.j0

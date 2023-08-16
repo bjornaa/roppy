@@ -1,9 +1,9 @@
 import numpy as np
 from numpy.typing import NDArray
 
-from roppy.sgrid import SGrid
-from roppy.sample import sample2D
 from roppy.depth import sdepth
+from roppy.sample import sample2D
+from roppy.sgrid import SGrid
 
 
 class Section:
@@ -23,7 +23,6 @@ class Section:
     """
 
     def __init__(self, grid: SGrid, X: NDArray[np.float64], Y: NDArray[np.float64]):
-
         self.grid = grid
         # Vertices, in subgrid coordinates
         self.X = X
@@ -35,7 +34,11 @@ class Section:
 
         # Topography
         self.h: NDArray[np.float64] = sample2D(
-            self.grid.h, self.X, self.Y, mask=self.grid.mask_rho, undef_value=1.0  # type: ignore
+            self.grid.h,  # type: ignore
+            self.X,
+            self.Y,
+            mask=self.grid.mask_rho,  # type ignore
+            undef_value=1.0,
         )
 
         # Metric

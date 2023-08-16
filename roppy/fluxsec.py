@@ -1,14 +1,11 @@
-# -*- coding: utf-8 -*-
-
 # Section class for flux calculations
 
-from __future__ import division, absolute_import
 import numpy as np
 
 from roppy.depth import sdepth
 
 
-class FluxSection(object):
+class FluxSection:
     """Class for flux calculations across sections
 
     A FluxSection object is defined by a sequence of psi-points
@@ -23,12 +20,9 @@ class FluxSection(object):
 
     with the ROMS variables of the same netCDF names
 
-    psi(i,j) = psi[j-1,i-1] lives at i-0.5, i+0.5
-
     """
 
-    def __init__(self, grid, I, J):
-
+    def __init__(self, grid, I, J) -> None:
         self.grid = grid
         self.I = np.asarray(I)
         self.J = np.asarray(J)
@@ -51,10 +45,10 @@ class FluxSection(object):
         #         pointing down, positive lux left,   dir = -1
         # V-edge: pointing right, positive flux down, dir = -1
         #         pointing left, positive flux up,    dir = +1
-        dir = np.zeros((self.L,), dtype=int)
-        dir[self.Eu] = self.J[1:][self.Eu] - self.J[:-1][self.Eu]
-        dir[self.Ev] = -self.I[1:][self.Ev] + self.I[:-1][self.Ev]
-        self.dir = dir
+        dir_ = np.zeros((self.L,), dtype=int)
+        dir_[self.Eu] = self.J[1:][self.Eu] - self.J[:-1][self.Eu]
+        dir_[self.Ev] = -self.I[1:][self.Ev] + self.I[:-1][self.Ev]
+        self.dir = dir_
 
         # Topography
         # Could simplify, since sampling here is
@@ -185,7 +179,6 @@ class FluxSection(object):
 
 
 def staircase_from_line(i0, i1, j0, j1):
-
     swapXY = False
     if abs(i1 - i0) < abs(j0 - j1):  # Mostly vertical
         i0, i1, j0, j1 = j0, j1, i0, i1
@@ -210,7 +203,7 @@ def staircase_from_line(i0, i1, j0, j1):
     X, Y = [i0], [j0]
 
     for i in range(len(X0) - 1):
-        x, y = X[-1], Y[-1]  # Last point on list
+        y = Y[-1]  # Last point on list
         x0, y0 = X0[i], Y0[i]  # Present point along line
         x1, y1 = X0[i + 1], Y0[i + 1]  # Next point along line
         if abs(y - y0) + abs(y - y1) > abs(y + sign - y0) + abs(y + sign - y1):

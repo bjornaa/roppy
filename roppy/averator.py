@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
-
 """Generator for moving averages from ROMS file(s)"""
-
-import numpy as np
 
 
 def roms_averator(ncid, var_name, L, grd):
@@ -16,7 +12,7 @@ def roms_averator(ncid, var_name, L, grd):
 
     L : integer, length of averaging period (only even presently)
 
-    n_rec = len(fid.dimensions['ocean_time'])    # Number of time records
+    n_rec = len(ncid.dimensions['ocean_time'])    # Number of time records
 
     """
 
@@ -42,16 +38,16 @@ def roms_averator(ncid, var_name, L, grd):
         s = (slice(None), grd.J, grd.I)
 
     # First average
-    MF = fid.variables[var_name][(0,) + s] / (4 * N)
+    MF = ncid.variables[var_name][(0, *s)] / (4 * N)
     for t in range(1, 2 * N):
-        MF += fid.variables[var_name][(t,) + s] / (2 * N)
-    MF += fid.variables[var_name][(2 * N,) + s] / (4 * N)
+        MF += ncid.variables[var_name][(t, *s)] / (2 * N)
+    MF += ncid.variables[var_name][(2 * N, *s)] / (4 * N)
     yield MF
 
     # Update the average
     for t in range(N + 1, n_rec - N):
-        MF += fid.variables[var_name][(t + N,) + s] / (4 * N)
-        MF += fid.variables[var_name][(t + N - 1,) + s] / (4 * N)
-        MF -= fid.variables[var_name][(t - N,) + s] / (4 * N)
-        MF -= fid.variables[var_name][(t - N - 1,) + s] / (4 * N)
+        MF += ncid.variables[var_name][(t + N, *s)] / (4 * N)
+        MF += ncid.variables[var_name][(t + N - 1, *s)] / (4 * N)
+        MF -= ncid.variables[var_name][(t - N, *s)] / (4 * N)
+        MF -= ncid.variables[var_name][(t - N - 1, *s)] / (4 * N)
         yield MF

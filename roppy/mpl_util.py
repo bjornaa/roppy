@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 """A set of utility functions for matplotlib
 
 Function overview
@@ -25,11 +22,11 @@ Function overview
 # 2010-01-05
 # -----------------------------------
 
-from typing import Tuple
+from __future__ import annotations
 
-import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
 
 Colormap = mpl.colors.Colormap
 Colornorm = mpl.colors.Normalize
@@ -60,7 +57,8 @@ def landmask(grd, color="0.8", pcolor="pcolormesh") -> None:
     """
 
     # Make a constant colormap, default = grey
-    constmap = plt.matplotlib.colors.ListedColormap([color])
+    # constmap = plt.matplotlib.colors.ListedColormap([color])
+    constmap = mpl.colors.ListedColormap([color])
 
     if isinstance(grd, np.ndarray):
         M = grd
@@ -85,6 +83,7 @@ def landmask(grd, color="0.8", pcolor="pcolormesh") -> None:
 # -------------
 # Colormap
 # -------------
+
 
 # Colormap, smlgn. med Rob Hetland
 def LevelColormap(levels, cmap=None, reverse=False) -> Colormap:
@@ -125,7 +124,7 @@ def LevelColormap(levels, cmap=None, reverse=False) -> Colormap:
     cdict = dict(red=tuple(R), green=tuple(G), blue=tuple(B))
 
     # Use
-    return plt.matplotlib.colors.LinearSegmentedColormap(
+    return mpl.colors.LinearSegmentedColormap(
         "%s_levels" % cmap.name, cdict, 256
     )
 
@@ -135,7 +134,7 @@ def LevelColormap(levels, cmap=None, reverse=False) -> Colormap:
 
 def levelmap(
     L, cmap=None, reverse=False, extend="neither"
-) -> Tuple[Colormap, Colornorm]:
+) -> tuple[Colormap, Colornorm]:
     """Make colormap and normalization from a sequence of levels
 
     *L* : increasing sequence of levels

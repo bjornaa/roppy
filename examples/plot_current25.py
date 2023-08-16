@@ -7,14 +7,18 @@
 # Bjørn Ådlandsvik <bjorn@imr.no>
 # 2020-03-27
 # ------------------------------------------------------
+# BÅ: Modified 2023-08-16, 
+# Comment on parameter settings for quiver
+# Fix for issue 1
 
 # -------------
 # Imports
 # -------------
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from netCDF4 import Dataset
+
 from roppy import SGrid
 from roppy.mpl_util import landmask
 
@@ -31,8 +35,17 @@ subgrid = (110, 170, 35, 90)
 # Depth level [m]
 z = 25
 
+# --- Vector parameters ---
+# These must be adjusted manually to fit the
+# grid resolution, the grid size, the zoom level, ...
+# plt.quiver has more arguments that can be tried.
+
 # Distance between vectors
 stride = 2
+# Length scale for the arrows (larger value gives shorter arrows)
+arrow_scale = 3
+# Width of the arrows
+arrow_width = 0.004
 
 # Speed level (isotachs)
 speedlevels = np.linspace(0, 0.5, 6)  # 0.0, 0.1, ...., 0.5
@@ -53,8 +66,6 @@ V0 = f.variables["v"][timeframe, :, grid.Jv, grid.Iv]
 
 Mu = f.variables["mask_u"][grid.Ju, grid.Iu]
 Mv = f.variables["mask_v"][grid.Jv, grid.Iv]
-
-# f.close()
 
 # ----------------------
 # Handle the data
@@ -91,7 +102,7 @@ plt.colorbar()
 
 # Make the vector plot
 
-plt.quiver(X, Y, U, V, width=0.003)
+plt.quiver(X, Y, U, V, scale=arrow_scale, width=arrow_width)
 
 # Plot green land mask
 landmask(grid, "LightGreen")

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Utilities functions for sampling output from the ROMS
 
 Horizontal sampling
@@ -186,9 +184,8 @@ def sample2D(
 
     if np.ndim(F) != 2:
         raise ValueError("F must be 2D")
-    if mask is not None:
-        if mask.shape != F.shape:
-            raise ValueError("Must have mask.shape == F.shape")
+    if mask is not None and mask.shape != F.shape:
+        raise ValueError("Must have mask.shape == F.shape")
 
     jmax, imax = F.shape
 
@@ -291,8 +288,7 @@ def bilin_inv(f, g, F, G, maxiter=7, tol=1.0e-7):
         x = np.zeros_like(f) + 0.5 * imax
         y = np.zeros_like(f) + 0.5 * jmax
 
-    for t in range(maxiter):
-
+    for _t in range(maxiter):
         if scalar:
             i = int(x)
             j = int(y)
