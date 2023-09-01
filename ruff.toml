@@ -1,0 +1,59 @@
+target-version = "py39"
+select = [
+    "F",  # pyflakes
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    # "C901",
+    "I",  # isort
+    # "N",  # pep8 naming
+    # "D",  # pydocstyle
+    "UP",  # pyupgrade
+    "YTT",
+    # "ANN", # flake8-annotations
+    "S",
+    "BLE",
+    # "FBT",
+    "B",  # flake8-bugbear
+    "A",
+    # "COM",
+    "C4",
+    # "EM",  # flake8-errmsg, fix later
+    "EXE",
+    "ISC",
+    # "G",
+    "PIE",
+    "T20",   # flake8-print
+    "Q",
+    "RSE",
+    "SLF",
+    "SIM",   # flake8_simplify
+    "TCH",
+    # "ARG",
+    "PTH",
+    # "PD",  # pandas_vet, fix later
+    "PLC",
+    "PLE",
+    # "PLR",
+    "PLW",
+    # "TRY",
+    "NPY",  # numpy
+    "RUF",
+]
+
+ignore = [
+    "E741",
+    # "N802",  # Allow uppercase in functions
+    # "N803",  # Allow uppercase in arguments
+    # "N806",  # Allow uppercase in variables
+    # "ANN001", "ANN101"
+    "UP007",
+    "C408",  # Prefer dict() instead of {}
+    "SIM108", # Prefer ternary operator
+    "SIM300",  # yoda misunderstandings
+    "T201",  # Allow print statements (in examples)
+    "PTH123",  # Prefer Path.open()
+   ]
+
+[per-file-ignores]
+    "roppy/sgrid.py" = ["S102"]  # Allow exec
+    "roppy/__init__.py" = ["F401"]  # Allow unused imports
