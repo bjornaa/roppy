@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 # ------------------------------------------------------
 # spermplot.py
@@ -19,9 +18,10 @@
 # Imports
 # -------------
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from netCDF4 import Dataset
+
 from roppy import SGrid
 from roppy.mpl_util import landmask
 from roppy.trajectories import curly_vectors

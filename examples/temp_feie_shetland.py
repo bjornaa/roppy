@@ -1,5 +1,6 @@
 import numpy as np
 from netCDF4 import Dataset
+
 import roppy
 
 # --- EDIT -----------------
@@ -21,7 +22,7 @@ grd = roppy.SGrid(f)
 x0, y0 = grd.ll2xy(lon0, lat0)
 x1, y1 = grd.ll2xy(lon1, lat1)
 # Find nearest rho-points
-i0, j0, i1, j1 = [int(round(v)) for v in (x0, y0, x1, y1)]
+i0, j0, i1, j1 = (int(round(v)) for v in (x0, y0, x1, y1))
 
 # Make a Section object
 sec = roppy.linear_section(i0, i1, j0, j1, grd)

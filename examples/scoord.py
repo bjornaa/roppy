@@ -1,8 +1,8 @@
 # Example script for experimenting with different settings for vertical stretching
 # Plots the depths of the mid-points of the vertical levels, aka rho-points.
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 import roppy
 

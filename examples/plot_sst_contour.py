@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """Read SST data and make a simple contour plot in matplotlib"""
 
@@ -13,8 +12,8 @@
 # Imports
 # --------
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from netCDF4 import Dataset
 
 # --------------

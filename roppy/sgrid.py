@@ -24,7 +24,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional
 
 import numpy as np
-from netCDF4 import Dataset  # type: ignore
 
 from roppy.depth import s_stretch, sdepth, zslice
 from roppy.sample import Array, bilin_inv, sample2D
@@ -32,6 +31,7 @@ from roppy.sample import Array, bilin_inv, sample2D
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from netCDF4 import Dataset
     from numpy.typing import NDArray
 
 
@@ -230,8 +230,7 @@ class SGrid:
 
     for _field in ["h", "mask_rho", "lon_rho", "lat_rho", "pm", "pn", "angle", "f"]:
         exec(
-            "%s = lambda self: self.ncid.variables['%s'][self.J, self.I]"
-            % (_field, _field)
+            f"{_field} = lambda self: self.ncid.variables['{_field}'][self.J, self.I]"
         )
         exec(f"{_field} = _Lazy({_field})")
 

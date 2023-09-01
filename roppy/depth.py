@@ -76,17 +76,17 @@ def sdepth(
     C = np.asarray(C)
     if stagger == "rho":
         N = len(C)
-        outshape = (N,) + Hshape
+        outshape = (N, *Hshape)
     elif stagger == "w":
         N = len(C) - 1
-        outshape = (N + 1,) + Hshape
+        outshape = (N + 1, *Hshape)
     else:
         raise ValueError("Stagger must be 'rho' (default) or 'w'")
 
     # Get S if not prescribed
     if S is None:
         if stagger == "w":
-            K = np.arange(N + 1, dtype=np.float64)  #### Endret
+            K = np.arange(N + 1, dtype=np.float64)
         else:
             K = np.arange(0.5, N)
         if Vstretching == 5:
@@ -419,7 +419,6 @@ def s_stretch(
     elif Vstretching == 3:
         gamma_ = 3.0
         Csur = -np.log(np.cosh(gamma_ * (-S) ** theta_s)) / np.log(np.cosh(gamma_))
-        # Csur = -np.log(np.cosh(gamma_ * np.abs(S) ** theta_s)) / np.log(np.cosh(gamma_))
         Cbot = (
             np.log(np.cosh(gamma_ * (S + 1) ** theta_b)) / np.log(np.cosh(gamma_)) - 1
         )

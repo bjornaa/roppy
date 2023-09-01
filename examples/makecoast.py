@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 """Extract a closed coast line
 
 Extracts a coast line from GSHHS using the
@@ -23,9 +21,8 @@ plot filled land is given in pcoast.py
 # Imports
 # ---------------
 
-# from itertools import chain
-from shapely import geometry
 import cartopy.io.shapereader as shapereader
+from shapely import geometry
 
 # -----------------
 # User settings
@@ -67,7 +64,7 @@ coast = [p for p in coast if p.area >= min_area]
 # Save the coast data
 # --------------------
 
-with open(outfile, "w") as fid:
+with open(outfile, mode="w") as fid:
     for p in coast:  # Loop over the polygons
         for v in zip(*p.boundary.xy):  # Loop over the vertices
             fid.write("{:7.3f}{:7.3f}\n".format(*v))

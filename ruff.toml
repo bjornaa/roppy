@@ -57,3 +57,4 @@ ignore = [
 [per-file-ignores]
     "roppy/sgrid.py" = ["S102"]  # Allow exec
     "roppy/__init__.py" = ["F401"]  # Allow unused imports
+    "test/test_*.py" = ["S101"]   # allow assert

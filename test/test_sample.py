@@ -1,16 +1,14 @@
-# -*- coding: utf-8 -*-
-
+import sys
 import unittest
+
 import numpy as np
 
-import sys
-sys.path = [".."] + sys.path
-#print sys.path
 from roppy.sample import sample2D
+
+sys.path = ["..", *sys.path]
 
 
 class Test_sample2D(unittest.TestCase):
-
     def test_arguments(self):
         # Make a grid for testing
         imax, jmax = 10, 7
@@ -21,26 +19,26 @@ class Test_sample2D(unittest.TestCase):
         self.assertTrue(np.isscalar(sample2D(A, X, Y)))
 
         # Conformal arrays
-        X = np.array([1,2])
-        Y = np.array([3,4])
+        X = np.array([1, 2])
+        Y = np.array([3, 4])
         B = sample2D(A, X, Y)
         self.assertEqual(B.shape, (2,))
 
         # Conformal arrays 2
-        X = np.arange(6).reshape(2,3)
-        Y = np.array([1,2]).reshape(2,1)
+        X = np.arange(6).reshape(2, 3)
+        Y = np.array([1, 2]).reshape(2, 1)
         B = sample2D(A, X, Y)
-        self.assertEqual(B.shape, (2,3))
+        self.assertEqual(B.shape, (2, 3))
 
         # Scalar and array
         X = 4
-        Y = np.array([1,2])
+        Y = np.array([1, 2])
         B = sample2D(A, X, Y)
         self.assertEqual(B.shape, (2,))
 
         # Nonconformal arrays
-        X = np.arange(6).reshape(2,3)
-        Y = np.array([1,2])
+        X = np.arange(6).reshape(2, 3)
+        Y = np.array([1, 2])
         self.assertRaises(ValueError, sample2D, A, X, Y)
 
         # 1D sequences such as lists
@@ -69,7 +67,10 @@ class Test_sample2D(unittest.TestCase):
 
     def test_bilinear(self):
         """Exact for bilinear function"""
-        f = lambda x, y: 3.0 + 2*x + 1.4*y + 0.2*x*y
+
+        def f(x, y):
+            return 3.0 + 2 * x + 1.4 * y + 0.2 * x * y
+
         imax, jmax = 10, 7
         JJ, II = np.meshgrid(np.arange(jmax), np.arange(imax))
         A = f(JJ, II)
@@ -80,14 +81,16 @@ class Test_sample2D(unittest.TestCase):
 
     def test_nodes(self):
         """Exact at nodes"""
-        f = lambda x, y : x**2 + y**2
+
+        def f(x, y):
+            return x**2 + y**2
+
         imax, jmax = 10, 7
         JJ, II = np.meshgrid(np.arange(jmax), np.arange(imax))
         A = f(JJ, II)
         i, j = 4, 3
         B = sample2D(A, i, j)
-        self.assertEqual(B, A[j,i])
-
+        self.assertEqual(B, A[j, i])
 
     # Use this landmask (origon=lower left)
     #    | | |x|x|
@@ -97,10 +100,14 @@ class Test_sample2D(unittest.TestCase):
     #
     def test_masked(self):
         """Interpolates correctly in the presence of mask"""
-        A = np.array([[1, 1, 1, 1],   # j=0
-                      [0, 1, 1, 1],   # j=1
-                      [0, 1, 0, 0],   # j=2
-                      [1, 1, 0, 0]])  # j=3
+        A = np.array(
+            [
+                [1, 1, 1, 1],  # j=0
+                [0, 1, 1, 1],  # j=1
+                [0, 1, 0, 0],  # j=2
+                [1, 1, 0, 0],
+            ]
+        )  # j=3
         M = A
 
         # sea point outside halo
@@ -110,13 +117,13 @@ class Test_sample2D(unittest.TestCase):
 
         # sea point in halo
         x, y = 1.8, 1.3
-        self.assertAlmostEqual(sample2D(A, x, y), 1-0.8*0.3)
+        self.assertAlmostEqual(sample2D(A, x, y), 1 - 0.8 * 0.3)
         self.assertEqual(sample2D(A, x, y, mask=M), 1)
 
         # land point in halo
         x, y = 1.8, 1.8
         b_unmask = sample2D(A, x, y, undef_value=np.nan)
-        self.assertAlmostEqual(b_unmask, 1-0.8*0.8)
+        self.assertAlmostEqual(b_unmask, 1 - 0.8 * 0.8)
         b_mask = sample2D(A, x, y, mask=M, undef_value=np.nan)
         self.assertEqual(b_mask, 1)
 
@@ -130,10 +137,11 @@ class Test_sample2D(unittest.TestCase):
     # ------------------------------------------------
 
     def test_offset_forwards(self):
-        
         # Make a grid with a bilinear function
-        f = lambda x, y: 3.0 + 2*x + 1.4*y + 0.2*x*y
-        #f = lambda y, x: x
+        def f(x, y):
+            return 3.0 + 2 * x + 1.4 * y + 0.2 * x * y
+
+        # f = lambda y, x: x
 
         # Make a grid with offset
         i0, i1, j0, j1 = 2, 10, 3, 8
@@ -143,10 +151,9 @@ class Test_sample2D(unittest.TestCase):
         x, y = 8.9, 4.1
         z = f(x, y)
 
-        a = sample2D(A, x-i0, y-j0)
+        a = sample2D(A, x - i0, y - j0)
         self.assertAlmostEqual(a, z)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

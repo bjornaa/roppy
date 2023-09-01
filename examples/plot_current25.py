@@ -7,7 +7,7 @@
 # Bjørn Ådlandsvik <bjorn@imr.no>
 # 2020-03-27
 # ------------------------------------------------------
-# BÅ: Modified 2023-08-16, 
+# BÅ: Modified 2023-08-16,
 # Comment on parameter settings for quiver
 # Fix for issue 1
 
@@ -109,7 +109,7 @@ landmask(grid, "LightGreen")
 
 # Set correct aspect ratio and axis limits
 plt.axis("image")
-plt.axis((grid.i0 + 0.5, grid.i1 - 1.5, grid.j0 + 0.5, grid.j1 - 1.5))
+plt.axis((grid.i0 + 0.5, grid.i1 - 0.5, grid.j0 + 0.5, grid.j1 - 1.5))
 
 # Display the plot
 plt.show()
